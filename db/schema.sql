@@ -114,6 +114,15 @@ create table if not exists admin_users (
   last_login_at timestamptz
 );
 
+-- Only the three known roles may be stored.
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'admin_users_role_check') then
+    alter table admin_users
+      add constraint admin_users_role_check check (role in ('admin', 'editor', 'viewer'));
+  end if;
+end $$;
+
 
 -- ---------------------------------------------------------------------------
 -- ADMIN SESSIONS  (token_hash is sha256 of the cookie token, never the token)

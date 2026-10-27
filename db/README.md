@@ -61,6 +61,21 @@ Re-running it updates that account's name and password. Passwords are hashed wit
 scrypt and never stored in plain text; sessions live in `admin_sessions` and reach
 the browser as an HttpOnly cookie (`tf_session`).
 
+You can also manage accounts from the console itself (Admins panel, `admin` role only).
+
+### Roles
+
+| Role | Read records/settings | Create, edit, delete records | Change settings | Manage accounts |
+| --- | --- | --- | --- | --- |
+| `admin` | yes | yes | yes | yes |
+| `editor` | yes | yes | yes | no |
+| `viewer` | yes | no | no | no |
+
+Set the role when creating an account (`--role editor`), or change it in the Admins
+panel. Enforcement is server-side (`requireRole` in `api/_lib/auth.js`); the console
+also hides controls a role cannot use. You cannot change your own role or remove your
+own or the last admin account.
+
 ## Routes
 
 | Route | Auth | Purpose |

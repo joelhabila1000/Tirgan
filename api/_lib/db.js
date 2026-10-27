@@ -108,8 +108,15 @@ export function getPool() {
         'DATABASE_URL is not set. Add it to your Vercel project environment variables, or to .env.local for local development.',
       )
     }
-    /* Reuse connections across warm invocations. Use the pooled Neon host. */
-    pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 3, idleTimeoutMillis: 10_000 })
+    /* Reuse connections across warm invocations. Use the pooled Neon host.
+       connectionTimeoutMillis keeps a bad or unreachable database from hanging
+       the function until the platform's own timeout (which surfaces as a 504). */
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      max: 3,
+      idleTimeoutMillis: 10_000,
+      connectionTimeoutMillis: 8_000,
+    })
   }
   return pool
 }

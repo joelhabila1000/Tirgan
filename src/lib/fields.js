@@ -62,14 +62,22 @@ export const RECORD_FIELDS = {
   ],
 }
 
+export const ROLE_OPTIONS = ['admin', 'editor', 'viewer']
+
+export const ROLE_LABELS = { admin: 'Admin', editor: 'Editor', viewer: 'Viewer' }
+
+const ROLE_HELP = 'Admin: everything. Editor: content and settings. Viewer: read-only.'
+
 export const ADMIN_FIELDS = [
   { name: 'name', label: 'Full name', kind: 'text' },
   { name: 'email', label: 'Email address', kind: 'email' },
   { name: 'password', label: 'Password', kind: 'password', help: 'At least 8 characters' },
+  { name: 'role', label: 'Role', kind: 'select', options: ROLE_OPTIONS, help: ROLE_HELP },
 ]
 
 export const ADMIN_EDIT_FIELDS = [
   { name: 'name', label: 'Full name', kind: 'text' },
+  { name: 'role', label: 'Role', kind: 'select', options: ROLE_OPTIONS, help: ROLE_HELP },
   { name: 'password', label: 'New password', kind: 'password', help: 'Leave blank to keep the current password' },
 ]
 

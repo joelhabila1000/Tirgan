@@ -1,8 +1,10 @@
 import { hasRecordType, listRecords, createRecord, updateRecord, deleteRecord, RECORD_TYPES } from '../_lib/db.js'
-import { requireUser } from '../_lib/auth.js'
+import { ROLES, requireRole } from '../_lib/auth.js'
 
 /**
- * /api/records/:type — records for the admin console. Requires a signed-in user.
+ * /api/records/:type — records for the admin console.
+ *
+ * Every role may read; only 'admin' and 'editor' may create, update or delete.
  *
  *   GET    /api/records/stories             -> { data: [...] }
  *   POST   /api/records/stories             -> { data: {...} }       create
@@ -17,7 +19,7 @@ export default async function handler(req, res) {
     return
   }
 
-  const user = await requireUser(req, res)
+  const user = await requireRole(req, res, req.method === 'GET' ? ROLES : ['admin', 'editor'])
   if (!user) return
 
   try {

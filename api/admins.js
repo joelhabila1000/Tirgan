@@ -1,12 +1,12 @@
 import { getPool } from './_lib/db.js'
-import { requireUser, hashPassword } from './_lib/auth.js'
+import { ROLES, hashPassword, requireRole } from './_lib/auth.js'
 
 /**
- * /api/admins — manage console accounts. Requires a signed-in user.
+ * /api/admins — manage console accounts. Requires the 'admin' role.
  *
  *   GET    /api/admins          -> { data: [...] }   (never exposes password_hash)
- *   POST   /api/admins          -> { data: {...} }   { name, email, password }
- *   PATCH  /api/admins?id=<id>  -> { data: {...} }   { name?, password? }
+ *   POST   /api/admins          -> { data: {...} }   { name, email, password, role }
+ *   PATCH  /api/admins?id=<id>  -> { data: {...} }   { name?, role?, password? }
  *   DELETE /api/admins?id=<id>  -> { data: { id } }
  */
 const MIN_PASSWORD = 8
@@ -14,7 +14,7 @@ const MIN_PASSWORD = 8
 const COLUMNS = `id, email, name, role, created_at as "createdAt", last_login_at as "lastLoginAt"`
 
 export default async function handler(req, res) {
-  const user = await requireUser(req, res)
+  const user = await requireRole(req, res, ['admin'])
   if (!user) return
 
   try {
@@ -27,11 +27,13 @@ export default async function handler(req, res) {
 
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
     const id = req.query.id ? Number(req.query.id) : null
+    const isSelf = id !== null && String(id) === String(user.id)
 
     if (req.method === 'POST') {
       const email = String(body?.email ?? '').trim().toLowerCase()
       const name = String(body?.name ?? '').trim()
       const password = String(body?.password ?? '')
+      const role = String(body?.role ?? 'editor')
 
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         res.status(400).json({ error: 'Enter a valid email address.' })
@@ -41,10 +43,14 @@ export default async function handler(req, res) {
         res.status(400).json({ error: `Choose a password of at least ${MIN_PASSWORD} characters.` })
         return
       }
+      if (!ROLES.includes(role)) {
+        res.status(400).json({ error: `Role must be one of: ${ROLES.join(', ')}.` })
+        return
+      }
 
       const { rows } = await getPool().query(
-        `insert into admin_users (email, name, password_hash) values ($1, $2, $3) returning ${COLUMNS}`,
-        [email, name, hashPassword(password)],
+        `insert into admin_users (email, name, role, password_hash) values ($1, $2, $3, $4) returning ${COLUMNS}`,
+        [email, name, role, hashPassword(password)],
       )
       res.status(201).json({ data: rows[0] })
       return
@@ -60,6 +66,18 @@ export default async function handler(req, res) {
       if (body?.name !== undefined) {
         values.push(String(body.name).trim())
         assignments.push(`name = $${values.length}`)
+      }
+      if (body?.role !== undefined) {
+        if (isSelf) {
+          res.status(400).json({ error: 'You cannot change your own role.' })
+          return
+        }
+        if (!ROLES.includes(String(body.role))) {
+          res.status(400).json({ error: `Role must be one of: ${ROLES.join(', ')}.` })
+          return
+        }
+        values.push(String(body.role))
+        assignments.push(`role = $${values.length}`)
       }
       if (body?.password) {
         if (String(body.password).length < MIN_PASSWORD) {
@@ -91,7 +109,7 @@ export default async function handler(req, res) {
         res.status(400).json({ error: 'Missing ?id=' })
         return
       }
-      if (String(id) === String(user.id)) {
+      if (isSelf) {
         res.status(400).json({ error: 'You cannot remove your own account.' })
         return
       }

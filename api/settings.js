@@ -1,11 +1,14 @@
 import { getPool } from './_lib/db.js'
-import { requireUser } from './_lib/auth.js'
+import { ROLES, requireRole } from './_lib/auth.js'
 
-/** Organisation settings, stored as one JSON row. Requires a signed-in user. */
+/**
+ * Organisation settings, stored as one JSON row. Every role may read; only
+ * 'admin' and 'editor' may change them.
+ */
 const KEY = 'organisation'
 
 export default async function handler(req, res) {
-  const user = await requireUser(req, res)
+  const user = await requireRole(req, res, req.method === 'GET' ? ROLES : ['admin', 'editor'])
   if (!user) return
 
   try {

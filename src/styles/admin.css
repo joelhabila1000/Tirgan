@@ -330,3 +330,22 @@
 .record-form__check {
   grid-column: 1 / -1;
 }
+
+/* A fieldset used to disable the settings form for read-only roles. */
+.form-grid__reset {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Read-only roles (viewer) — hide the controls they cannot use.
+   Enforcement is server-side; this only removes dead buttons.
+   --------------------------------------------------------------------------- */
+.admin--readonly .admin-panel__head > .btn--primary,
+.admin--readonly .table-wrap--actions th:last-child,
+.admin--readonly .table-wrap--actions td:last-child {
+  display: none;
+}

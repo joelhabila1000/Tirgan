@@ -77,6 +77,26 @@ export async function requireUser(req, res) {
   return user
 }
 
+/** Roles, from most to least powerful. */
+export const ROLES = ['admin', 'editor', 'viewer']
+
+/**
+ * Returns the signed-in user when their role is allowed, otherwise sends 401
+ * (not signed in) or 403 (signed in but not permitted) and returns null.
+ */
+export async function requireRole(req, res, roles) {
+  const user = await getSessionUser(req)
+  if (!user) {
+    res.status(401).json({ error: 'Not signed in' })
+    return null
+  }
+  if (!roles.includes(user.role)) {
+    res.status(403).json({ error: 'Your account does not have permission to do that.' })
+    return null
+  }
+  return user
+}
+
 export function setSessionCookie(res, token) {
   res.setHeader('Set-Cookie', serializeCookie(SESSION_COOKIE, token, SESSION_TTL_MS / 1000))
 }

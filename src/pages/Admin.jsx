@@ -10,6 +10,7 @@ import {
   ADMIN_FIELDS,
   PK_FIELD,
   RECORD_FIELDS,
+  ROLE_LABELS,
   SETTINGS_FIELDS,
   recordToForm,
   formToRecord,
@@ -112,8 +113,10 @@ function StatusBadge({ status }) {
 }
 
 function Table({ columns, caption, children }) {
+  /* A trailing "Actions" column is dropped for read-only roles (see .admin--readonly). */
+  const hasActions = columns[columns.length - 1] === 'Actions'
   return (
-    <div className="table-wrap">
+    <div className={`table-wrap${hasActions ? ' table-wrap--actions' : ''}`}>
       <table className="data-table">
         {caption ? <caption>{caption}</caption> : null}
         <thead>
@@ -533,14 +536,16 @@ export default function Admin() {
 
   const submitAdmin = async (values) => {
     const { mode, record } = editor
+    const isSelf = mode === 'edit' && String(record.id) === String(user?.id)
     setBusy(true)
     setFormError('')
     try {
       if (mode === 'create') {
-        await api.createAdmin({ name: values.name, email: values.email, password: values.password })
+        await api.createAdmin({ name: values.name, email: values.email, password: values.password, role: values.role })
         setToast('Admin account created.')
       } else {
         const patch = { name: values.name }
+        if (!isSelf) patch.role = values.role
         if (values.password) patch.password = values.password
         await api.updateAdmin(record.id, patch)
         setToast('Admin account updated.')
@@ -636,6 +641,10 @@ export default function Admin() {
   }
 
   const { stories, news, events, enquiries, donations } = data
+  const role = user?.role
+  const canEdit = role === 'admin' || role === 'editor'
+  const canManageAdmins = role === 'admin'
+  const navItems = NAV.filter((item) => item.id !== 'admins' || canManageAdmins)
   const active = NAV.find((item) => item.id === panel)
   const initials = (user?.name || user?.email || 'A')
     .split(/\s+/)
@@ -647,7 +656,9 @@ export default function Admin() {
     ? []
     : editor.type === 'admins'
       ? editor.mode === 'edit'
-        ? ADMIN_EDIT_FIELDS
+        ? ADMIN_EDIT_FIELDS.filter(
+            (field) => field.name !== 'role' || String(editor.record.id) !== String(user?.id),
+          )
         : ADMIN_FIELDS
       : editor.mode === 'edit'
         ? RECORD_FIELDS[editor.type].filter((field) => field.name !== PK_FIELD[editor.type])
@@ -657,15 +668,15 @@ export default function Admin() {
     ? {}
     : editor.type === 'admins'
       ? editor.mode === 'edit'
-        ? { name: editor.record.name ?? '', password: '' }
-        : { name: '', email: '', password: '' }
+        ? { name: editor.record.name ?? '', role: editor.record.role ?? 'editor', password: '' }
+        : { name: '', email: '', password: '', role: 'editor' }
       : recordToForm(editor.type, editor.record)
 
   return (
     <>
       <Seo title="Admin" path="/admin" noIndex />
 
-      <div className="admin">
+      <div className={canEdit ? 'admin' : 'admin admin--readonly'}>
         {/* ---------- Sidebar ---------- */}
         <aside className="admin__sidebar">
           <Link to="/admin" className="brand" aria-label={`${site.shortName} admin`}>
@@ -685,7 +696,7 @@ export default function Admin() {
           </Link>
 
           <nav className="admin-nav" aria-label="Admin sections">
-            {NAV.map((item) => (
+            {navItems.map((item) => (
               <button
                 key={item.id}
                 type="button"
@@ -735,6 +746,13 @@ export default function Admin() {
           </header>
 
           <div className="admin__content">
+            {!canEdit ? (
+              <Callout tone="info" title="Read-only access" icon="shield">
+                Your account has the “{ROLE_LABELS[role] || role}” role, so you can browse records
+                but not change them.
+              </Callout>
+            ) : null}
+
             {/* ================= OVERVIEW ================= */}
             {panel === 'overview' ? (
               <>
@@ -1040,7 +1058,7 @@ export default function Admin() {
                     <h2 id="donations-heading" style={{ fontSize: 'var(--fs-base)' }}>
                       Recent donations
                     </h2>
-                    <button type="button" className="btn btn--primary btn--sm" onClick={exportDonations}>
+                    <button type="button" className="btn btn--outline btn--sm" onClick={exportDonations}>
                       <Icon name="download" size={16} />
                       Export CSV
                     </button>
@@ -1093,7 +1111,7 @@ export default function Admin() {
                   </button>
                 </div>
 
-                <Table columns={['Name', 'Email', 'Last sign-in', 'Actions']}>
+                <Table columns={['Name', 'Email', 'Role', 'Last sign-in', 'Actions']}>
                   {admins.map((admin) => (
                     <tr key={admin.id}>
                       <td>
@@ -1101,6 +1119,9 @@ export default function Admin() {
                         {String(admin.id) === String(user?.id) ? ' (you)' : ''}
                       </td>
                       <td>{admin.email}</td>
+                      <td>
+                        <span className="badge badge--teal">{ROLE_LABELS[admin.role] || admin.role}</span>
+                      </td>
                       <td>{admin.lastLoginAt ? formatWhen(admin.lastLoginAt) : 'Never'}</td>
                       <td>
                         <div className="admin-actions">
@@ -1123,8 +1144,10 @@ export default function Admin() {
                 </Table>
 
                 <Callout tone="info" title="Who can do what" icon="shield">
-                  Anyone signed in here can add or remove other admins and edit all content. Keep the
-                  number of accounts small, and remove anyone who no longer needs access.
+                  <strong>Admin</strong> can do everything, including managing accounts.{' '}
+                  <strong>Editor</strong> can manage content and settings but not accounts.{' '}
+                  <strong>Viewer</strong> is read-only. You cannot change your own role or remove your
+                  own account.
                 </Callout>
               </section>
             ) : null}
@@ -1146,18 +1169,22 @@ export default function Admin() {
                       saveOrgSettings(settings)
                     }}
                   >
-                    <Fields
-                      fields={SETTINGS_FIELDS}
-                      values={settings}
-                      onChange={(name, value) => setSettings((prev) => ({ ...prev, [name]: value }))}
-                    />
+                    <fieldset className="form-grid__reset" disabled={!canEdit}>
+                      <Fields
+                        fields={SETTINGS_FIELDS}
+                        values={settings}
+                        onChange={(name, value) => setSettings((prev) => ({ ...prev, [name]: value }))}
+                      />
+                    </fieldset>
 
-                    <div className="form-grid__full">
-                      <button type="submit" className="btn btn--primary" disabled={busy}>
-                        {busy ? 'Saving…' : 'Save changes'}
-                        {busy ? null : <Icon name="check" size={18} />}
-                      </button>
-                    </div>
+                    {canEdit ? (
+                      <div className="form-grid__full">
+                        <button type="submit" className="btn btn--primary" disabled={busy}>
+                          {busy ? 'Saving…' : 'Save changes'}
+                          {busy ? null : <Icon name="check" size={18} />}
+                        </button>
+                      </div>
+                    ) : null}
                   </form>
                 ) : (
                   <p className="card__text">Loading settings…</p>
