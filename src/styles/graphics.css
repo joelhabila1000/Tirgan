@@ -1,0 +1,1659 @@
+/* ==========================================================================
+   Graphics layer — blood-cell motif, illustrations, charts, motion keyframes
+   All visuals are inline SVG or CSS. There are no external image requests.
+   ========================================================================== */
+
+/* ==========================================================================
+   1. KEYFRAMES
+   ========================================================================== */
+
+/* Expanding ring behind the floating "Need help?" button */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  70% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Red blood cells drifting through the hero. */
+@keyframes drift-a {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(14px, -18px, 0) rotate(12deg);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes drift-b {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(-18px, 14px, 0) rotate(-16deg);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.88;
+  }
+}
+
+/* Line charts draw themselves in when scrolled into view. */
+@keyframes draw-line {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes grow-bar {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* ==========================================================================
+   2. DECORATIVE CELL BACKGROUNDS & DIVIDERS
+   ========================================================================== */
+
+.cell-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.55;
+}
+
+.cell-bg svg {
+  width: 100%;
+  height: 100%;
+}
+
+.cell-bg--strong {
+  opacity: 0.85;
+}
+
+/* Rounded "cell" shapes used as soft background blobs */
+.cell-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+/* Section divider built from cells */
+.cell-divider {
+  display: grid;
+  place-items: center;
+  padding-block: var(--sp-6);
+}
+
+.cell-divider svg {
+  width: min(100%, 520px);
+  height: auto;
+}
+
+/* Loading state: orbiting cells */
+.loader-cells {
+  display: grid;
+  place-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-8);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+
+.loader-cells__orbit {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  animation: spin-slow 2.4s linear infinite;
+}
+
+.loader-cells__orbit span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.loader-cells__orbit span:nth-child(2) {
+  animation: spin-slow 2.4s linear infinite reverse;
+}
+
+/* ==========================================================================
+   3. HERO
+   ========================================================================== */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      90% 70% at 78% 20%,
+      rgba(179, 32, 42, 0.1) 0%,
+      rgba(179, 32, 42, 0) 60%
+    ),
+    radial-gradient(
+      80% 60% at 8% 90%,
+      rgba(18, 124, 110, 0.14) 0%,
+      rgba(18, 124, 110, 0) 62%
+    ),
+    linear-gradient(180deg, var(--cream-050), var(--cream-100));
+}
+
+.hero__inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: clamp(2rem, 1rem + 4vw, 3.5rem);
+  align-items: center;
+  padding-block: clamp(2.5rem, 1.5rem + 5vw, 5.5rem);
+}
+
+@media (min-width: 980px) {
+  .hero__inner {
+    grid-template-columns: 1.05fr 0.95fr;
+    padding-block: clamp(3rem, 2rem + 5vw, 6rem);
+  }
+}
+
+.hero__title {
+  font-size: var(--fs-4xl);
+  letter-spacing: -0.025em;
+  margin-top: var(--sp-3);
+}
+
+.hero__title .accent {
+  color: var(--red-600);
+  position: relative;
+  white-space: nowrap;
+}
+
+/* Hand-drawn underline under the highlighted word */
+.hero__title .accent::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.02em;
+  height: 0.22em;
+  border-radius: var(--r-pill);
+  background: var(--gold-500);
+  opacity: 0.45;
+  z-index: -1;
+}
+
+.hero__lede {
+  font-size: var(--fs-md);
+  color: var(--ink-700);
+  max-width: 54ch;
+  margin-top: var(--sp-5);
+}
+
+.hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin-top: var(--sp-6);
+}
+
+.hero__trust {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-4);
+  margin-top: var(--sp-6);
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--border);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.hero__trust-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.hero__trust-item svg {
+  color: var(--teal-600);
+  flex: none;
+}
+
+.hero__art {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.hero__art svg {
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+}
+
+/* Floating stat card over the hero illustration */
+.hero__float {
+  position: absolute;
+  background: var(--white);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--sp-3) var(--sp-4);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--fs-xs);
+  animation: pulse-soft 4s var(--ease) infinite;
+}
+
+.hero__float--one {
+  top: 6%;
+  left: -2%;
+}
+
+.hero__float--two {
+  bottom: 8%;
+  right: -1%;
+  animation-delay: 1.4s;
+}
+
+.hero__float strong {
+  display: block;
+  font-family: var(--font-head);
+  font-size: 1.15rem;
+  color: var(--red-700);
+}
+
+@media (max-width: 520px) {
+  .hero__float {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   4. PAGE HERO (inner pages)
+   ========================================================================== */
+
+.page-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--cream-200), var(--cream-100));
+  border-bottom: 1px solid var(--border);
+}
+
+.page-hero--dark {
+  background: linear-gradient(135deg, var(--red-800), var(--red-700) 60%, #7a1218);
+  border-bottom: 0;
+  color: #ffe9e6;
+}
+
+.page-hero--dark h1 {
+  color: var(--white);
+}
+
+.page-hero__inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: clamp(1.75rem, 1rem + 3vw, 3rem);
+  align-items: center;
+  padding-block: clamp(2rem, 1.25rem + 4vw, 4.25rem);
+}
+
+@media (min-width: 900px) {
+  .page-hero__inner--split {
+    grid-template-columns: 1.2fr 0.8fr;
+  }
+}
+
+.page-hero__title {
+  margin-top: var(--sp-3);
+}
+
+.page-hero__lede {
+  font-size: var(--fs-md);
+  margin-top: var(--sp-4);
+  max-width: 62ch;
+  color: var(--ink-700);
+}
+
+.page-hero--dark .page-hero__lede {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.page-hero__art svg {
+  width: 100%;
+  max-width: 340px;
+  height: auto;
+  margin-inline: auto;
+}
+
+/* ==========================================================================
+   5. CELL COMPARISON ILLUSTRATION (normal vs sickle)
+   ========================================================================== */
+
+.compare {
+  display: grid;
+  gap: var(--sp-5);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+}
+
+.compare__panel {
+  text-align: center;
+  padding: var(--sp-5);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  background: var(--white);
+}
+
+.compare__panel--healthy {
+  border-top: 5px solid var(--teal-600);
+}
+
+.compare__panel--sickle {
+  border-top: 5px solid var(--red-600);
+}
+
+.compare__art {
+  height: 150px;
+  display: grid;
+  place-items: center;
+  margin-bottom: var(--sp-4);
+}
+
+.compare__label {
+  font-family: var(--font-head);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-base);
+}
+
+.compare__panel--healthy .compare__label {
+  color: var(--teal-700);
+}
+
+.compare__panel--sickle .compare__label {
+  color: var(--red-700);
+}
+
+.compare__text {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  margin-top: var(--sp-2);
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   6. ANIMATED COUNTERS
+   ========================================================================== */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: var(--sp-4);
+}
+
+.stat {
+  position: relative;
+  padding: var(--sp-5);
+  border-radius: var(--r-lg);
+  background: var(--white);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition:
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+
+.stat:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Cell watermark in the corner of each stat */
+.stat__watermark {
+  position: absolute;
+  right: -18px;
+  bottom: -18px;
+  width: 92px;
+  height: 92px;
+  opacity: 0.1;
+  color: var(--red-600);
+  pointer-events: none;
+}
+
+.stat__icon {
+  color: var(--red-600);
+  margin-bottom: var(--sp-3);
+}
+
+.stat__value {
+  font-family: var(--font-head);
+  font-weight: var(--fw-black);
+  font-size: clamp(2.1rem, 1.5rem + 2vw, 3rem);
+  line-height: 1;
+  color: var(--red-700);
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.stat__value .stat__suffix {
+  font-size: 0.55em;
+  color: var(--gold-ink);
+}
+
+.stat__label {
+  margin-top: var(--sp-3);
+  font-family: var(--font-head);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-sm);
+  color: var(--charcoal);
+}
+
+.stat__note {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  margin-top: var(--sp-1);
+}
+
+/* Dark variant used in CTA bands */
+.section--dark .stat,
+.section--red .stat {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.section--dark .stat__value,
+.section--red .stat__value {
+  color: var(--gold-500);
+}
+
+.section--dark .stat__label,
+.section--red .stat__label {
+  color: var(--white);
+}
+
+.section--dark .stat__note,
+.section--red .stat__note {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.section--dark .stat__watermark,
+.section--red .stat__watermark {
+  color: var(--white);
+}
+
+/* ==========================================================================
+   7. FLIP CARDS (myths vs facts)
+   ========================================================================== */
+
+.flip-card {
+  perspective: 1200px;
+  min-height: 230px;
+}
+
+.flip-card__inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 230px;
+  transition: transform var(--dur-slow) var(--ease-out);
+  transform-style: preserve-3d;
+}
+
+.flip-card[data-flipped="true"] .flip-card__inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card__face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid var(--border);
+}
+
+.flip-card__face--front {
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+
+.flip-card__face--back {
+  background: linear-gradient(140deg, var(--teal-050), #c9ece6);
+  border-color: rgba(18, 124, 110, 0.3);
+  transform: rotateY(180deg);
+}
+
+.flip-card__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-head);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--red-700);
+}
+
+.flip-card__face--back .flip-card__kicker {
+  color: var(--teal-700);
+}
+
+.flip-card__text {
+  font-size: var(--fs-base);
+  line-height: 1.55;
+  font-weight: var(--fw-semibold);
+  color: var(--charcoal);
+  margin-block: var(--sp-4);
+}
+
+.flip-card__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.flip-card__face--back .flip-card__hint {
+  color: var(--teal-700);
+}
+
+/* ==========================================================================
+   8. CHARTS
+   ========================================================================== */
+
+.chart {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+  box-shadow: var(--shadow-sm);
+}
+
+.chart__title {
+  font-size: var(--fs-base);
+  margin-bottom: var(--sp-1);
+}
+
+.chart__subtitle {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  margin-bottom: var(--sp-5);
+}
+
+.chart__figure {
+  margin: 0;
+}
+
+.chart__svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chart__svg text {
+  font-family: var(--font-body);
+  font-size: 11px;
+  fill: var(--text-muted);
+}
+
+.chart__axis {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+}
+
+.chart__gridline {
+  stroke: var(--border);
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
+}
+
+.chart__bar {
+  transform-origin: bottom;
+  animation: grow-bar var(--dur-slow) var(--ease-out) both;
+}
+
+.chart__line {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1400;
+  stroke-dashoffset: 1400;
+  animation: draw-line 1.8s var(--ease-out) both;
+}
+
+.chart__point {
+  stroke: var(--white);
+  stroke-width: 2;
+}
+
+.chart__donut {
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+.chart__donut-seg {
+  transition: opacity var(--dur) var(--ease);
+}
+
+.chart__donut-seg:hover {
+  opacity: 0.78;
+}
+
+.chart-legend {
+  display: grid;
+  gap: var(--sp-2);
+  margin-top: var(--sp-5);
+}
+
+.chart-legend__item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--fs-sm);
+}
+
+.chart-legend__dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  flex: none;
+}
+
+.chart-legend__value {
+  font-family: var(--font-head);
+  font-weight: var(--fw-bold);
+  color: var(--charcoal);
+}
+
+.chart-footnote {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  margin-top: var(--sp-4);
+  line-height: 1.55;
+  font-style: italic;
+}
+
+/* ==========================================================================
+   9. PUNNETT SQUARE TOOL
+   ========================================================================== */
+
+.punnett {
+  display: grid;
+  gap: var(--sp-6);
+}
+
+@media (min-width: 900px) {
+  .punnett {
+    grid-template-columns: 0.9fr 1.1fr;
+    align-items: start;
+  }
+}
+
+.genotype-legend {
+  display: grid;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+}
+
+.genotype-key {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sp-3);
+  align-items: center;
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--cream-050);
+  border: 1px solid var(--border);
+  font-size: var(--fs-sm);
+}
+
+.genotype-key__tag {
+  width: 52px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-sm);
+  background: var(--red-600);
+  color: var(--white);
+  font-family: var(--font-head);
+  font-weight: var(--fw-black);
+  letter-spacing: 0.05em;
+}
+
+.genotype-key__tag--aa {
+  background: var(--teal-600);
+}
+.genotype-key__tag--as {
+  background: var(--gold-600);
+}
+.genotype-key__tag--ss {
+  background: var(--red-600);
+}
+.genotype-key__tag--ac {
+  background: #7a5cb8;
+}
+.genotype-key__tag--sc {
+  background: #b3552a;
+}
+
+.punnett__grid-wrap {
+  overflow-x: auto;
+}
+
+.punnett__grid {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  gap: 8px;
+  min-width: 320px;
+}
+
+.punnett__corner,
+.punnett__head,
+.punnett__cell {
+  display: grid;
+  place-items: center;
+  min-height: 74px;
+  border-radius: var(--r-md);
+  font-family: var(--font-head);
+  font-weight: var(--fw-black);
+  font-size: var(--fs-lg);
+  letter-spacing: 0.04em;
+}
+
+.punnett__corner {
+  background: transparent;
+}
+
+.punnett__head {
+  background: var(--cream-200);
+  color: var(--charcoal);
+  font-size: var(--fs-base);
+  border: 1px solid var(--border);
+}
+
+.punnett__cell {
+  border: 2px solid var(--border);
+  background: var(--white);
+  cursor: default;
+  transition:
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+
+.punnett__cell:hover {
+  transform: scale(1.04);
+  box-shadow: var(--shadow-md);
+  z-index: 1;
+}
+
+.punnett__cell--aa {
+  background: var(--teal-050);
+  border-color: var(--teal-600);
+  color: var(--teal-700);
+}
+.punnett__cell--as {
+  background: var(--warning-050);
+  border-color: var(--gold-600);
+  color: var(--gold-ink);
+}
+.punnett__cell--ac {
+  background: #efe9fb;
+  border-color: #7a5cb8;
+  color: #543c8a;
+}
+.punnett__cell--ss {
+  background: var(--red-050);
+  border-color: var(--red-600);
+  color: var(--red-700);
+}
+.punnett__cell--sc {
+  background: #fbeade;
+  border-color: #b3552a;
+  color: #8a3d1c;
+}
+.punnett__cell--cc {
+  background: var(--cream-200);
+  border-color: var(--border-strong);
+  color: var(--ink-700);
+}
+
+.punnett__results {
+  display: grid;
+  gap: var(--sp-3);
+  margin-top: var(--sp-5);
+}
+
+.result-bar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--sp-2) var(--sp-4);
+  align-items: center;
+  font-size: var(--fs-sm);
+}
+
+.result-bar__label {
+  font-weight: var(--fw-semibold);
+  font-family: var(--font-head);
+}
+
+.result-bar__pct {
+  font-family: var(--font-head);
+  font-weight: var(--fw-black);
+  color: var(--charcoal);
+}
+
+.result-bar__track {
+  grid-column: 1 / -1;
+  height: 12px;
+  border-radius: var(--r-pill);
+  background: var(--cream-200);
+  overflow: hidden;
+}
+
+.result-bar__fill {
+  height: 100%;
+  border-radius: var(--r-pill);
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+/* ==========================================================================
+   10. STEPS / RED FLAGS
+   ========================================================================== */
+
+.steps {
+  display: grid;
+  gap: var(--sp-4);
+  counter-reset: step;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sp-4);
+  align-items: start;
+  padding: var(--sp-5);
+  border-radius: var(--r-lg);
+  background: var(--white);
+  border: 1px solid var(--border);
+  position: relative;
+}
+
+.step__num {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--red-600);
+  color: var(--white);
+  font-family: var(--font-head);
+  font-weight: var(--fw-black);
+  font-size: var(--fs-base);
+  flex: none;
+}
+
+.step__title {
+  font-family: var(--font-head);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-base);
+  color: var(--charcoal);
+}
+
+.step__text {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-top: var(--sp-1);
+}
+
+/* Connector line down the steps */
+.step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: calc(var(--sp-5) + 23px);
+  top: 100%;
+  height: var(--sp-4);
+  width: 2px;
+  background: var(--border-strong);
+}
+
+/* Red-flag emergency panel */
+.red-flag-panel {
+  border-radius: var(--r-lg);
+  border: 2px solid var(--red-600);
+  overflow: hidden;
+  background: var(--white);
+}
+
+.red-flag-panel__head {
+  background: var(--red-600);
+  color: var(--white);
+  padding: var(--sp-4) var(--sp-5);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-family: var(--font-head);
+  font-weight: var(--fw-black);
+  font-size: var(--fs-base);
+}
+
+.red-flag-panel__body {
+  padding: var(--sp-5);
+}
+
+.flag-list {
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.flag-list__item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sp-3);
+  align-items: start;
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+  color: var(--ink-700);
+}
+
+.flag-list__marker {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--red-050);
+  color: var(--red-600);
+  flex: none;
+  font-weight: var(--fw-black);
+  font-size: 0.75rem;
+}
+
+/* ==========================================================================
+   11. DONATION WIDGETS
+   ========================================================================== */
+
+.amount-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: var(--sp-3);
+}
+
+.amount-btn {
+  padding: var(--sp-4) var(--sp-2);
+  border-radius: var(--r-md);
+  border: 2px solid var(--border-strong);
+  background: var(--white);
+  font-family: var(--font-head);
+  font-weight: var(--fw-black);
+  font-size: var(--fs-base);
+  color: var(--charcoal);
+  text-align: center;
+  transition:
+    background-color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+
+.amount-btn:hover {
+  border-color: var(--red-600);
+  transform: translateY(-2px);
+}
+
+.amount-btn[aria-pressed="true"] {
+  background: var(--red-600);
+  border-color: var(--red-600);
+  color: var(--white);
+}
+
+.amount-btn__note {
+  display: block;
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-regular);
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.amount-btn[aria-pressed="true"] .amount-btn__note {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.freq-toggle {
+  display: inline-flex;
+  padding: 5px;
+  border-radius: var(--r-pill);
+  background: var(--cream-200);
+  border: 1px solid var(--border);
+  gap: 4px;
+}
+
+.freq-toggle button {
+  padding: 0.6rem 1.35rem;
+  border-radius: var(--r-pill);
+  font-family: var(--font-head);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-sm);
+  color: var(--ink-700);
+  transition:
+    background-color var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+
+.freq-toggle button[aria-pressed="true"] {
+  background: var(--white);
+  color: var(--red-700);
+  box-shadow: var(--shadow-sm);
+}
+
+.trust-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  align-items: center;
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--border);
+}
+
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--ink-600);
+}
+
+.trust-badge svg {
+  color: var(--teal-600);
+  flex: none;
+}
+
+/* "What your gift does" impact rows */
+.impact-list {
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.impact-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--sp-4);
+  align-items: center;
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--white);
+  border: 1px solid var(--border);
+  transition: transform var(--dur) var(--ease);
+}
+
+.impact-row:hover {
+  transform: translateX(4px);
+}
+
+.impact-row__amount {
+  font-family: var(--font-head);
+  font-weight: var(--fw-black);
+  color: var(--red-700);
+  font-size: var(--fs-base);
+  min-width: 74px;
+}
+
+.impact-row__icon {
+  color: var(--gold-ink);
+  flex: none;
+}
+
+/* ==========================================================================
+   12. CARDS WITH MEDIA (stories, news, programs, events)
+   ========================================================================== */
+
+.media-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+
+.media-card__media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(140deg, var(--cream-200), var(--coral-050));
+  overflow: hidden;
+}
+
+.media-card__media svg {
+  width: 62%;
+  height: auto;
+}
+
+.media-card__media--teal {
+  background: linear-gradient(140deg, var(--teal-050), #c7e9e2);
+}
+.media-card__media--red {
+  background: linear-gradient(140deg, var(--red-050), var(--coral-050));
+}
+.media-card__media--gold {
+  background: linear-gradient(140deg, var(--warning-050), #f6e2bd);
+}
+.media-card__media--charcoal {
+  background: linear-gradient(140deg, #3b3632, var(--charcoal));
+}
+
+.media-card__body {
+  padding: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: var(--sp-3);
+}
+
+.media-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.media-card__title {
+  font-size: var(--fs-lg);
+}
+
+.media-card__excerpt {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  line-height: 1.6;
+  flex: 1;
+}
+
+/* Badge pinned on the media area */
+.media-card__tag {
+  position: absolute;
+  top: var(--sp-3);
+  left: var(--sp-3);
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Placeholder marker shown on every graphic slot awaiting a real photo */
+.img-slot {
+  position: absolute;
+  bottom: var(--sp-2);
+  right: var(--sp-2);
+  background: rgba(35, 32, 30, 0.82);
+  color: var(--white);
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: var(--r-pill);
+  font-weight: var(--fw-bold);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   13. EVENT CARDS & STRIP
+   ========================================================================== */
+
+.events-strip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(280px, 1fr);
+  gap: var(--sp-4);
+  overflow-x: auto;
+  padding-bottom: var(--sp-3);
+  scroll-snap-type: x mandatory;
+}
+
+.events-strip > * {
+  scroll-snap-align: start;
+}
+
+.event-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+  border-radius: var(--r-lg);
+  background: var(--white);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+
+.event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.event-card__date {
+  width: 68px;
+  flex: none;
+  text-align: center;
+  border-radius: var(--r-md);
+  background: var(--red-050);
+  border: 1px solid rgba(179, 32, 42, 0.2);
+  padding: var(--sp-2) var(--sp-1);
+  align-self: start;
+}
+
+.event-card__month {
+  display: block;
+  font-family: var(--font-head);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--red-700);
+}
+
+.event-card__day {
+  display: block;
+  font-family: var(--font-head);
+  font-size: 1.7rem;
+  font-weight: var(--fw-black);
+  line-height: 1.1;
+  color: var(--red-700);
+}
+
+.event-card__title {
+  font-size: var(--fs-base);
+  margin-bottom: var(--sp-1);
+}
+
+.event-card__meta {
+  display: grid;
+  gap: 4px;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.event-card__meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.event-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+  margin-top: var(--sp-3);
+}
+
+/* Countdown (World Sickle Cell Day) */
+.countdown {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--sp-3);
+  max-width: 520px;
+}
+
+.countdown__unit {
+  text-align: center;
+  padding: var(--sp-4) var(--sp-2);
+  border-radius: var(--r-md);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.countdown__value {
+  font-family: var(--font-head);
+  font-weight: var(--fw-black);
+  font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.25rem);
+  line-height: 1;
+  color: var(--gold-500);
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown__label {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.78);
+  margin-top: var(--sp-2);
+}
+
+/* ==========================================================================
+   14. GALLERY GRID
+   ========================================================================== */
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
+  gap: var(--sp-3);
+}
+
+.gallery__item {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+}
+
+.gallery__item svg {
+  width: 54%;
+}
+
+/* ==========================================================================
+   15. DOWNLOAD CARDS
+   ========================================================================== */
+
+.download-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--sp-4);
+  align-items: center;
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--white);
+  border: 1px solid var(--border);
+  transition:
+    border-color var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+
+.download-card:hover {
+  border-color: var(--red-600);
+  transform: translateY(-2px);
+}
+
+.download-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-sm);
+  display: grid;
+  place-items: center;
+  background: var(--red-050);
+  color: var(--red-600);
+  flex: none;
+}
+
+.download-card__title {
+  font-family: var(--font-head);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-sm);
+}
+
+.download-card__meta {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   16. MISC GRAPHIC BITS
+   ========================================================================== */
+
+/* Inline "chip" list with tick marks */
+.tick-list {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.tick-list__item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sp-3);
+  align-items: start;
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+  color: var(--ink-700);
+}
+
+.tick-list__mark {
+  color: var(--teal-600);
+  flex: none;
+  margin-top: 3px;
+}
+
+.section--dark .tick-list__mark,
+.section--red .tick-list__mark {
+  color: var(--gold-500);
+}
+
+.section--dark .tick-list__item,
+.section--red .tick-list__item {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Donation / CTA banner */
+.cta-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-xl);
+  background: linear-gradient(135deg, var(--red-700), var(--red-600) 55%, #9d1b24);
+  color: #ffe9e6;
+  padding: clamp(1.75rem, 1rem + 3vw, 3.25rem);
+}
+
+.cta-banner h2 {
+  color: var(--white);
+}
+
+.cta-banner__inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: var(--sp-5);
+  align-items: center;
+}
+
+@media (min-width: 820px) {
+  .cta-banner__inner {
+    grid-template-columns: 1fr auto;
+  }
+}
+
+.cta-banner .lede {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.cta-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+
+/* Progress bar (fundraising / program progress) */
+.progress {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.progress__track {
+  height: 14px;
+  border-radius: var(--r-pill);
+  background: var(--cream-200);
+  overflow: hidden;
+}
+
+.progress__fill {
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, var(--red-600), var(--coral-500));
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+.progress__meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+/* Icon row used in "daily care" style checklists */
+.icon-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: var(--sp-3);
+}
+
+.icon-row__item {
+  display: grid;
+  gap: var(--sp-2);
+  justify-items: center;
+  text-align: center;
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--white);
+  border: 1px solid var(--border);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--ink-700);
+  transition: transform var(--dur) var(--ease);
+}
+
+.icon-row__item:hover {
+  transform: translateY(-3px);
+}
+
+.icon-row__item svg {
+  color: var(--teal-600);
+}
+
+/* Timeline-as-cards variant for the About story */
+.story-grid {
+  display: grid;
+  gap: var(--sp-5);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+}
+
+/* ==========================================================================
+   19. PARTNERS MARQUEE (home page)
+   An auto-scrolling strip that travels left → right. The track holds two
+   copies of the list and shifts by exactly 50%, so the loop is seamless.
+   ========================================================================== */
+
+.marquee {
+  position: relative;
+  overflow: hidden;
+  /* Soft edges so items glide in and out rather than clipping hard. */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+
+.marquee__track {
+  display: flex;
+  width: max-content;
+  animation: marquee-ltr 45s linear infinite;
+}
+
+.marquee:hover .marquee__track {
+  animation-play-state: paused;
+}
+
+/* Spacing lives on the item (not a flex gap) so the two copies tile exactly. */
+.marquee__item {
+  flex: none;
+  width: 220px;
+  margin-right: var(--sp-4);
+}
+
+@keyframes marquee-ltr {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    overflow-x: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .marquee__track {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   20. REDUCED MOTION: stop the decorative loops
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__float,
+  .loader-cells__orbit,
+  .loader-cells__orbit span:nth-child(2),
+  .floating-help__pulse {
+    animation: none !important;
+  }
+
+  .chart__line {
+    stroke-dashoffset: 0;
+  }
+
+  .chart__bar {
+    transform: none;
+    animation: none;
+  }
+}

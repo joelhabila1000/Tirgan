@@ -1,0 +1,259 @@
+/* ==========================================================================
+   Admin console — its own chrome, separate from the public site.
+   Loaded after the design system so it can reuse those tokens and components.
+   ========================================================================== */
+
+/* ==========================================================================
+   1. SIGN-IN SCREEN
+   ========================================================================== */
+
+.admin-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--gutter);
+  background:
+    radial-gradient(90% 70% at 82% 12%, rgba(244, 18, 18, 0.12) 0%, rgba(244, 18, 18, 0) 60%),
+    radial-gradient(80% 60% at 8% 92%, rgba(47, 125, 116, 0.12) 0%, rgba(47, 125, 116, 0) 62%),
+    var(--cream-100);
+}
+
+.admin-login__card {
+  width: min(100%, 440px);
+  padding: clamp(1.5rem, 1rem + 2vw, 2.25rem);
+}
+
+/* ==========================================================================
+   2. SHELL — sidebar + main
+   ========================================================================== */
+
+.admin {
+  min-height: 100vh;
+  background: var(--cream-200);
+  display: grid;
+  grid-template-columns: 264px minmax(0, 1fr);
+}
+
+@media (max-width: 900px) {
+  .admin {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- Sidebar ---------- */
+.admin__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  padding: var(--sp-5) var(--sp-4);
+  background: var(--footer-bg);
+  color: rgba(255, 247, 239, 0.8);
+}
+
+@media (min-width: 901px) {
+  .admin__sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+}
+
+.admin-nav {
+  display: grid;
+  gap: 2px;
+}
+
+.admin-nav__link {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  padding: 0.62rem 0.75rem;
+  border-radius: var(--r-sm);
+  border-left: 3px solid transparent;
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: rgba(255, 247, 239, 0.82);
+  text-align: left;
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+
+.admin-nav__link svg {
+  flex: none;
+  opacity: 0.85;
+}
+
+.admin-nav__link:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--white);
+}
+
+.admin-nav__link[aria-current="true"] {
+  background: rgba(244, 18, 18, 0.16);
+  border-left-color: var(--red-600);
+  color: var(--white);
+}
+
+.admin-nav__count {
+  margin-left: auto;
+  min-width: 22px;
+  height: 22px;
+  padding-inline: 6px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--r-pill);
+  background: var(--red-600);
+  color: var(--white);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.admin__sidebar-foot {
+  margin-top: auto;
+}
+
+/* ---------- Main ---------- */
+.admin__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.admin__topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-6);
+  background: rgba(255, 253, 250, 0.92);
+  backdrop-filter: saturate(180%) blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.admin__topbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+.admin__search {
+  max-width: 260px;
+}
+
+.admin-account {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding-left: var(--sp-4);
+  border-left: 1px solid var(--border);
+}
+
+.admin-account__meta {
+  display: grid;
+  line-height: 1.25;
+}
+
+@media (max-width: 640px) {
+  .admin-account__meta {
+    display: none;
+  }
+}
+
+.admin__content {
+  padding: var(--sp-6) var(--sp-6) var(--sp-9);
+  display: grid;
+  gap: var(--sp-6);
+  align-content: start;
+}
+
+/* ==========================================================================
+   3. PANELS, CARDS, TABLES
+   ========================================================================== */
+
+.admin-card-grid {
+  display: grid;
+  gap: var(--sp-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+
+.admin-split {
+  display: grid;
+  gap: var(--sp-5);
+}
+
+@media (min-width: 1000px) {
+  .admin-split {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.admin-panel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+
+.admin-panel--form {
+  max-width: 880px;
+}
+
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.admin-toast {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(0.75rem, 2vw, 1.5rem);
+  translate: -50% 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  max-width: min(94vw, 560px);
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4);
+  background: var(--charcoal);
+  color: var(--cream-100);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--fs-sm);
+  animation: rise-in var(--dur) var(--ease-out) both;
+}
+
+.admin-toast__close {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-sm);
+  color: rgba(255, 255, 255, 0.8);
+  flex: none;
+}
+
+.admin-toast__close:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--white);
+}

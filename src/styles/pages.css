@@ -1,0 +1,607 @@
+/* ==========================================================================
+   Page composition layer — layouts specific to individual pages
+   ========================================================================== */
+
+/* ==========================================================================
+   1. LONG-FORM TEXT (.prose) — legal pages, article bodies, policy content
+   ========================================================================== */
+
+.prose {
+  font-size: var(--fs-base);
+  line-height: 1.7;
+  color: var(--ink-700);
+  max-width: 72ch;
+}
+
+.prose > * + * {
+  margin-top: var(--sp-4);
+}
+
+.prose h2 {
+  font-size: var(--fs-xl);
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  scroll-margin-top: calc(var(--header-h) + 1.5rem);
+}
+
+.prose h2:first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.prose h3 {
+  font-size: var(--fs-lg);
+  margin-top: var(--sp-6);
+  scroll-margin-top: calc(var(--header-h) + 1.5rem);
+}
+
+.prose p,
+.prose li {
+  line-height: 1.72;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.35rem;
+}
+
+.prose ul {
+  list-style: disc;
+}
+
+.prose ol {
+  list-style: decimal;
+}
+
+.prose li + li {
+  margin-top: var(--sp-2);
+}
+
+.prose a {
+  color: var(--red-700);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+}
+
+.prose a:hover {
+  color: var(--red-800);
+  background: var(--red-050);
+}
+
+.prose blockquote {
+  border-left: 5px solid var(--gold-500);
+  padding: var(--sp-2) 0 var(--sp-2) var(--sp-5);
+  font-family: var(--font-head);
+  font-size: var(--fs-md);
+  color: var(--charcoal);
+  font-weight: var(--fw-semibold);
+}
+
+.prose code {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.9em;
+  background: var(--cream-200);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.prose hr {
+  margin-block: var(--sp-7);
+}
+
+/* Placeholder token the client must replace, highlighted in long copy. */
+.ph {
+  background: var(--warning-050);
+  border-bottom: 2px dotted var(--gold-600);
+  border-radius: 3px;
+  padding: 0 3px;
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   2. LEGAL PAGE LAYOUT (sticky contents sidebar)
+   ========================================================================== */
+
+.legal-layout {
+  display: grid;
+  gap: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+  align-items: start;
+}
+
+@media (min-width: 980px) {
+  .legal-layout {
+    grid-template-columns: 260px 1fr;
+  }
+}
+
+.toc {
+  padding: var(--sp-5);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+@media (min-width: 980px) {
+  .toc {
+    position: sticky;
+    top: calc(var(--header-h) + 1.5rem);
+    max-height: calc(100vh - var(--header-h) - 3rem);
+    overflow-y: auto;
+  }
+}
+
+.toc__title {
+  font-family: var(--font-head);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: var(--sp-3);
+}
+
+.toc__list {
+  display: grid;
+  gap: var(--sp-1);
+}
+
+.toc__link {
+  display: block;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+  color: var(--ink-600);
+  border-left: 3px solid transparent;
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+.toc__link:hover {
+  background: var(--red-050);
+  border-left-color: var(--red-600);
+  color: var(--red-700);
+}
+
+.legal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-5);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--cream-200);
+  margin-bottom: var(--sp-6);
+}
+
+/* ==========================================================================
+   3. ARTICLE TEMPLATE
+   ========================================================================== */
+
+.article-header {
+  max-width: 72ch;
+}
+
+.article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-4);
+  margin-top: var(--sp-4);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.article-author {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.article-author .avatar {
+  width: 44px;
+  height: 44px;
+  font-size: var(--fs-sm);
+}
+
+.article-hero-art {
+  margin-top: var(--sp-6);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  position: relative;
+  aspect-ratio: 21 / 9;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(140deg, var(--cream-200), var(--coral-050));
+  border: 1px solid var(--border);
+}
+
+.article-hero-art svg {
+  width: min(46%, 300px);
+}
+
+.article-body {
+  display: grid;
+  gap: var(--sp-7);
+}
+
+@media (min-width: 1000px) {
+  .article-body--aside {
+    grid-template-columns: 1fr 260px;
+    align-items: start;
+  }
+}
+
+.article-share {
+  padding: var(--sp-5);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+@media (min-width: 1000px) {
+  .article-share {
+    position: sticky;
+    top: calc(var(--header-h) + 1.5rem);
+  }
+}
+
+/* ==========================================================================
+   4. FAQ LAYOUT
+   ========================================================================== */
+
+.faq-group + .faq-group {
+  margin-top: var(--sp-8);
+}
+
+.faq-group__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+
+.faq-group__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  display: grid;
+  place-items: center;
+  background: var(--red-050);
+  color: var(--red-600);
+  flex: none;
+}
+
+/* ==========================================================================
+   5. CONTACT PAGE
+   ========================================================================== */
+
+.contact-layout {
+  display: grid;
+  gap: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+  align-items: start;
+}
+
+@media (min-width: 980px) {
+  .contact-layout {
+    grid-template-columns: 1fr 0.85fr;
+  }
+}
+
+.contact-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sp-4);
+  align-items: start;
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.contact-item__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  display: grid;
+  place-items: center;
+  background: var(--red-050);
+  color: var(--red-600);
+  flex: none;
+}
+
+.contact-item__label {
+  font-family: var(--font-head);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.contact-item__value {
+  font-weight: var(--fw-semibold);
+  color: var(--charcoal);
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+.contact-item__value a:hover {
+  color: var(--red-700);
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   6. DONATE PAGE
+   ========================================================================== */
+
+.donation-layout {
+  display: grid;
+  gap: clamp(1.75rem, 1rem + 3vw, 3rem);
+  align-items: start;
+}
+
+@media (min-width: 980px) {
+  .donation-layout {
+    grid-template-columns: 1.1fr 0.9fr;
+  }
+}
+
+.donation-widget {
+  padding: clamp(1.25rem, 1rem + 1.5vw, 2rem);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+}
+
+.donation-summary {
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--cream-200);
+  margin-top: var(--sp-5);
+}
+
+.donation-summary__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-4);
+  font-size: var(--fs-sm);
+}
+
+.donation-summary__total {
+  font-family: var(--font-head);
+  font-weight: var(--fw-black);
+  font-size: var(--fs-lg);
+  color: var(--red-700);
+}
+
+.bank-details {
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-5);
+  border-radius: var(--r-md);
+  background: var(--charcoal);
+  color: var(--cream-100);
+}
+
+.bank-details__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--sp-3);
+  align-items: center;
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: var(--fs-sm);
+}
+
+.bank-details__row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.bank-details__label {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.bank-details__value {
+  font-family: ui-monospace, Consolas, monospace;
+  font-weight: var(--fw-bold);
+  color: var(--white);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   7. RESEARCH & DATA PAGE
+   ========================================================================== */
+
+.research-grid {
+  display: grid;
+  gap: var(--sp-5);
+}
+
+@media (min-width: 900px) {
+  .research-grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.source-list {
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.source-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.source-item__badge {
+  font-family: var(--font-head);
+  font-weight: var(--fw-black);
+  font-size: var(--fs-xs);
+  color: var(--white);
+  background: var(--teal-600);
+  border-radius: var(--r-sm);
+  padding: 4px 10px;
+  height: fit-content;
+  letter-spacing: 0.06em;
+}
+
+/* ==========================================================================
+   8. LIVING WELL PAGE
+   ========================================================================== */
+
+.care-checklist {
+  display: grid;
+  gap: var(--sp-3);
+}
+
+@media (min-width: 700px) {
+  .care-checklist {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+.care-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sp-4);
+  align-items: start;
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--teal-600);
+}
+
+.care-item__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--teal-050);
+  color: var(--teal-700);
+  flex: none;
+}
+
+.care-item__title {
+  font-family: var(--font-head);
+  font-weight: var(--fw-bold);
+  color: var(--charcoal);
+  font-size: var(--fs-base);
+}
+
+.care-item__text {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   9. STORIES / FILTERABLE GRIDS
+   ========================================================================== */
+
+.grid-results {
+  display: grid;
+  gap: var(--sp-5);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+}
+
+.results-count {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--sp-4);
+}
+
+/* ==========================================================================
+   10. ABOUT PAGE
+   ========================================================================== */
+
+.value-card {
+  text-align: center;
+}
+
+.value-card .icon-badge {
+  margin-inline: auto;
+}
+
+.about-story {
+  display: grid;
+  gap: var(--sp-6);
+}
+
+/* ==========================================================================
+   11. PROGRAMS PAGE
+   ========================================================================== */
+
+.program-card .media-card__media {
+  aspect-ratio: 5 / 3;
+}
+
+.program-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--border);
+  font-size: var(--fs-xs);
+}
+
+.program-stats__item strong {
+  display: block;
+  font-family: var(--font-head);
+  font-size: var(--fs-base);
+  color: var(--red-700);
+}
+
+/* ==========================================================================
+   12. HELP PANEL (floating help target)
+   ========================================================================== */
+
+.help-panel {
+  display: grid;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+  border-radius: var(--r-lg);
+  border: 2px solid var(--teal-600);
+  background: var(--teal-050);
+}
+
+.help-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+
+/* ==========================================================================
+   13. GET INVOLVED
+   ========================================================================== */
+
+.involve-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  height: 100%;
+}
+
+.involve-card__list {
+  flex: 1;
+}
