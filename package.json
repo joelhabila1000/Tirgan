@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "db:setup": "node --env-file-if-exists=.env.local scripts/db-seed.mjs",
     "db:schema": "node --env-file-if-exists=.env.local scripts/db-seed.mjs db/schema.sql",
-    "db:seed": "node --env-file-if-exists=.env.local scripts/db-seed.mjs db/seed.sql"
+    "db:seed": "node --env-file-if-exists=.env.local scripts/db-seed.mjs db/seed.sql",
+    "admin:create": "node --env-file-if-exists=.env.local scripts/create-admin.mjs"
   },
   "dependencies": {
     "pg": "^8.16.3",

@@ -14,7 +14,8 @@ import {
   StatCard,
   TickList,
 } from '../components/Ui'
-import { impactStats, programs, stories, events, partners, site, medicalDisclaimer } from '../data/site'
+import { impactStats, programs, stories as staticStories, events as staticEvents, partners, site, medicalDisclaimer } from '../data/site'
+import { useCollection } from '../lib/content'
 
 /**
  * Home — the front door.
@@ -24,6 +25,8 @@ import { impactStats, programs, stories, events, partners, site, medicalDisclaim
  * screening, medical outreach) and the Instagram call to action.
  */
 export default function Home() {
+  const stories = useCollection('stories', staticStories)
+  const events = useCollection('events', staticEvents)
   const upcoming = events.slice(0, 4)
 
   return (

@@ -15,7 +15,8 @@ import {
   CheckboxField,
   validators,
 } from '../components/Ui'
-import { events, pastEvents, site } from '../data/site'
+import { events as staticEvents, pastEvents, site } from '../data/site'
+import { useCollection } from '../lib/content'
 
 /**
  * Events — what is coming up, World Sickle Cell Day and a simple RSVP.
@@ -49,6 +50,7 @@ function useCountdown(target) {
 }
 
 export default function Events() {
+  const events = useCollection('events', staticEvents)
   const target = useMemo(() => nextWscd(), [])
   const { days, hours, minutes, seconds } = useCountdown(target.getTime())
 

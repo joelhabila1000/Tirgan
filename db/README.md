@@ -49,8 +49,33 @@ npx vercel dev        # or: npm run dev:api, after installing the Vercel CLI
 The admin console shows a "Live data" badge when it is reading from Neon, and a
 "Sample data" badge when it is not.
 
-## Before this goes public
+## 4. Create an admin account
 
-The API and the admin console are **unprotected**. Before the site is reachable
-on the open internet you must add server-side authentication and authorise every
-read and write — see the header comment in `src/pages/Admin.jsx`.
+The console is protected by server-side sessions. Create your account with:
+
+```bash
+npm run admin:create -- --email you@tirngan.org --password "a-long-secret" --name "Your Name"
+```
+
+Re-running it updates that account's name and password. Passwords are hashed with
+scrypt and never stored in plain text; sessions live in `admin_sessions` and reach
+the browser as an HttpOnly cookie (`tf_session`).
+
+## Routes
+
+| Route | Auth | Purpose |
+| --- | --- | --- |
+| `POST /api/auth/login` | – | Sign in, sets the session cookie |
+| `POST /api/auth/logout` | – | Sign out |
+| `GET /api/auth/me` | cookie | Current user |
+| `GET/POST/PATCH/DELETE /api/records/:type` | **required** | Console records (`?id=` for update/delete) |
+| `GET/PUT /api/settings` | **required** | Organisation details |
+| `GET /api/public/:type` | – | `stories`, `news`, `events`, `settings` for the public site |
+| `GET /api/health` | – | Connectivity check |
+
+## Notes
+
+- The login route is not yet rate-limited. Add throttling (e.g. Upstash or a
+  counter in Postgres) before the console is widely exposed.
+- "Reply" on an enquiry and "Refund" on a donation only change their status —
+  they send no email and call no payment provider.

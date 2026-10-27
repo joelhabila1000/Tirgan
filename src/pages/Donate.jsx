@@ -5,7 +5,8 @@ import Icon from '../components/Icon'
 import Reveal from '../components/Reveal'
 import { DonutChart } from '../components/Charts'
 import { PageHero, SectionHead, Callout, TickList } from '../components/Ui'
-import { site, donationPresets, donationImpact, fundAllocation, bankDetails } from '../data/site'
+import { donationPresets, donationImpact, fundAllocation, bankDetails } from '../data/site'
+import { useOrgSettings } from '../lib/content'
 
 /**
  * Donate — the giving page.
@@ -23,6 +24,7 @@ const naira = (value) =>
   }).format(value)
 
 export default function Donate() {
+  const site = useOrgSettings()
   const [frequency, setFrequency] = useState('once')
   const [amount, setAmount] = useState(15000)
   const [custom, setCustom] = useState('')

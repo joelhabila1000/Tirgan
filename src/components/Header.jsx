@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import Icon from './Icon'
-import { site, navigation } from '../data/site'
+import { navigation } from '../data/site'
+import { useOrgSettings } from '../lib/content'
 import logo from '../assets/logo.jpg'
 
 /**
@@ -14,6 +15,7 @@ import logo from '../assets/logo.jpg'
  *  - Escape closes the drawer and any open dropdown; the drawer locks scroll.
  */
 export default function Header() {
+  const site = useOrgSettings()
   const [scrolled, setScrolled] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [openIndex, setOpenIndex] = useState(null)

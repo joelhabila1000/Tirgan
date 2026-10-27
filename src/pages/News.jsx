@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import Seo, { breadcrumbSchema } from '../components/Seo'
 import Icon from '../components/Icon'
 import { PageHero, FilterTabs, MediaCard, Callout, CtaBanner, PlaceholderTag } from '../components/Ui'
-import { news, newsCategories } from '../data/site'
+import { news as staticNews, newsCategories } from '../data/site'
+import { useCollection } from '../lib/content'
 
 /**
  * News — announcements, updates and the blog.
@@ -16,11 +17,12 @@ const formatDate = (iso) =>
   new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
 export default function News() {
+  const news = useCollection('news', staticNews)
   const [category, setCategory] = useState('All')
 
   const filtered = useMemo(
     () => (category === 'All' ? news : news.filter((n) => n.category === category)),
-    [category],
+    [news, category],
   )
 
   const featured = news.find((n) => n.featured)

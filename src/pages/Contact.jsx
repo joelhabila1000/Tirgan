@@ -12,7 +12,7 @@ import {
   CheckboxField,
   validators,
 } from '../components/Ui'
-import { site } from '../data/site'
+import { useOrgSettings } from '../lib/content'
 
 /**
  * Contact — how to reach us, plus the general enquiry form.
@@ -32,6 +32,7 @@ const enquiryTypes = [
 ]
 
 export default function Contact() {
+  const site = useOrgSettings()
   const contactItems = [
     {
       icon: 'phone',

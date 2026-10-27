@@ -257,3 +257,76 @@
   background: rgba(255, 255, 255, 0.12);
   color: var(--white);
 }
+
+/* ---------------------------------------------------------------------------
+   Modals (record editor, confirm dialogs)
+   --------------------------------------------------------------------------- */
+.admin-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  display: grid;
+  place-items: center;
+  padding: clamp(0.75rem, 3vw, 2rem);
+}
+
+.admin-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgba(42, 32, 39, 0.55);
+  cursor: default;
+}
+
+.admin-modal__panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 720px);
+  max-height: min(90vh, 900px);
+  overflow: auto;
+  background: var(--white);
+  box-shadow: var(--shadow-lg);
+  animation: rise-in var(--dur) var(--ease-out) both;
+}
+
+.admin-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-5) var(--sp-5) var(--sp-4);
+  border-bottom: 1px solid var(--cream-300);
+}
+
+.admin-modal__close {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  color: var(--ink-600);
+}
+
+.admin-modal__close:hover {
+  background: var(--cream-100);
+  color: var(--ink-900);
+}
+
+.admin-modal__body {
+  padding: var(--sp-5);
+}
+
+.admin-modal__foot {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+  margin-top: var(--sp-2);
+}
+
+/* Make long text fields and checkboxes span the full width of the form grid. */
+.record-form__wide,
+.record-form__check {
+  grid-column: 1 / -1;
+}

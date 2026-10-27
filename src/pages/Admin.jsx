@@ -4,51 +4,20 @@ import Seo from '../components/Seo'
 import Icon from '../components/Icon'
 import { Callout } from '../components/Ui'
 import { site, stories as fallbackStories, news as fallbackNews, events as fallbackEvents } from '../data/site'
-import { fetchRecords } from '../lib/api'
-
-const RECORD_TYPES = ['stories', 'news', 'events', 'enquiries', 'donations']
+import * as api from '../lib/api'
+import { PK_FIELD, RECORD_FIELDS, SETTINGS_FIELDS, recordToForm, formToRecord } from '../lib/fields'
 
 /**
  * Admin — the foundation's admin console.
  *
- * ============================================================================
- * FRONT-END ONLY. NOT SECURE YET. DO NOT EXPOSE AS-IS.
- * ---------------------------------------------------------------------------
- * This is a working interface shell filled with sample records. There is no
- * server behind it: the sign-in accepts anything and only remembers a flag in
- * localStorage. Before this route is reachable from the open internet you MUST
- *   - authenticate on a server (sessions, hashed passwords, 2FA),
- *   - authorise every read and every write,
- *   - move the sample records into a real database,
- *   - and keep this route out of search engines (it already sets noindex).
- * ============================================================================
+ * Authentication is server-side: /api/auth/login verifies a scrypt password hash
+ * and sets an HttpOnly session cookie; every /api/records and /api/settings call
+ * requires that session. Keep this route out of search engines (it sets noindex).
  */
 
-const SESSION_KEY = 'tf-admin-session'
+const RECORD_TYPES = ['stories', 'news', 'events', 'enquiries', 'donations']
 
-const NAV = [
-  { id: 'overview', label: 'Overview', icon: 'chart' },
-  { id: 'stories', label: 'Stories', icon: 'quote' },
-  { id: 'news', label: 'News & blog', icon: 'file' },
-  { id: 'events', label: 'Events', icon: 'calendar' },
-  { id: 'enquiries', label: 'Enquiries', icon: 'mail' },
-  { id: 'donations', label: 'Donations', icon: 'gift' },
-  { id: 'settings', label: 'Settings', icon: 'shield' },
-]
-
-const buildKpis = (data) => [
-  { icon: 'gift', value: '₦1,240,000', label: 'Donations this month', note: '+12% vs last month' },
-  { icon: 'droplet', value: '7,500', label: 'Screenings this year', note: 'On track for the 2026 target' },
-  { icon: 'mail', value: '18', label: 'New enquiries', note: '6 still awaiting a reply' },
-  {
-    icon: 'file',
-    value: '12',
-    label: 'Published posts',
-    note: `${data.stories.length} stories · ${data.news.length} articles`,
-  },
-]
-
-/* SAMPLE records — replace with real data from your backend. */
+/* Bundled records used only if an API call fails mid-session. */
 const SAMPLE_ENQUIRIES = [
   { id: 'ENQ-1042', name: 'Amina Bello', email: 'amina.b@example.com', topic: 'Genotype counselling', date: '2026-10-24', status: 'New' },
   { id: 'ENQ-1041', name: 'Chidi Okoro', email: 'chidi@example.com', topic: 'Treatment assistance', date: '2026-10-23', status: 'New' },
@@ -65,6 +34,54 @@ const SAMPLE_DONATIONS = [
   { id: 'DON-3081', donor: 'B. Danladi', amount: 40000, type: 'One-off', date: '2026-10-12', status: 'Failed' },
 ]
 
+const FALLBACK = {
+  stories: fallbackStories,
+  news: fallbackNews,
+  events: fallbackEvents,
+  enquiries: SAMPLE_ENQUIRIES,
+  donations: SAMPLE_DONATIONS,
+}
+
+const defaultSettings = () => ({
+  name: site.name,
+  shortName: site.shortName,
+  url: site.url,
+  email: site.email,
+  emailDonations: site.emailDonations,
+  emailSupport: site.emailSupport,
+  phoneDisplay: site.phoneDisplay,
+  phoneHref: site.phoneHref,
+  whatsappDisplay: site.whatsappDisplay,
+  whatsappHref: site.whatsappHref,
+  instagramUrl: site.instagramUrl,
+  addressLine1: site.addressLine1,
+  addressLine2: site.addressLine2,
+  addressCountry: site.addressCountry,
+  emergencyNumber: site.emergencyNumber,
+})
+
+const NAV = [
+  { id: 'overview', label: 'Overview', icon: 'chart' },
+  { id: 'stories', label: 'Stories', icon: 'quote' },
+  { id: 'news', label: 'News & blog', icon: 'file' },
+  { id: 'events', label: 'Events', icon: 'calendar' },
+  { id: 'enquiries', label: 'Enquiries', icon: 'mail' },
+  { id: 'donations', label: 'Donations', icon: 'gift' },
+  { id: 'settings', label: 'Settings', icon: 'shield' },
+]
+
+const buildKpis = (data) => [
+  { icon: 'gift', value: '₦1,240,000', label: 'Donations this month', note: '+12% vs last month' },
+  { icon: 'droplet', value: '7,500', label: 'Screenings this year', note: 'On track for the 2026 target' },
+  { icon: 'mail', value: String(data.enquiries.filter((e) => e.status === 'New').length), label: 'New enquiries', note: 'Awaiting a reply' },
+  {
+    icon: 'file',
+    value: '12',
+    label: 'Published posts',
+    note: `${data.stories.length} stories · ${data.news.length} articles`,
+  },
+]
+
 const naira = (value) =>
   new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(value)
 
@@ -74,6 +91,7 @@ const BADGE_TONE = {
   Settled: 'badge--success',
   Pending: 'badge--gold',
   Failed: 'badge--alert',
+  Refunded: 'badge--teal',
   Published: 'badge--success',
   Sample: 'badge--gold',
 }
@@ -103,21 +121,157 @@ function Table({ columns, caption, children }) {
 }
 
 /* ---------------------------------------------------------------------------
-   Sign-in — a DEMO gate only. See the file header.
+   Modal + form plumbing
    --------------------------------------------------------------------------- */
 
-function AdminLogin({ onSignIn }) {
+function Modal({ title, onClose, children }) {
+  return (
+    <div className="admin-modal" role="dialog" aria-modal="true" aria-label={title}>
+      <button type="button" className="admin-modal__backdrop" aria-label="Close" onClick={onClose} />
+      <div className="admin-modal__panel">
+        <div className="admin-modal__head">
+          <h2 style={{ fontSize: 'var(--fs-lg)', margin: 0 }}>{title}</h2>
+          <button type="button" className="admin-modal__close" aria-label="Close" onClick={onClose}>
+            <Icon name="close" size={18} />
+          </button>
+        </div>
+        <div className="admin-modal__body">{children}</div>
+      </div>
+    </div>
+  )
+}
+
+function Fields({ fields, values, onChange }) {
+  return (
+    <div className="form-grid form-grid--2">
+      {fields.map((field) => {
+        const id = `rf-${field.name}`
+        if (field.kind === 'checkbox') {
+          return (
+            <label className="checkbox record-form__check" key={field.name} htmlFor={id}>
+              <input
+                id={id}
+                type="checkbox"
+                checked={Boolean(values[field.name])}
+                onChange={(event) => onChange(field.name, event.target.checked)}
+              />
+              <span>{field.label}</span>
+            </label>
+          )
+        }
+        return (
+          <div className={`field ${field.kind === 'textarea' ? 'record-form__wide' : ''}`} key={field.name}>
+            <label className="field__label" htmlFor={id}>
+              {field.label}
+            </label>
+            {field.kind === 'textarea' ? (
+              <textarea
+                className="textarea"
+                id={id}
+                rows={4}
+                value={values[field.name] ?? ''}
+                onChange={(event) => onChange(field.name, event.target.value)}
+              />
+            ) : field.kind === 'select' ? (
+              <select className="select" id={id} value={values[field.name] ?? ''} onChange={(event) => onChange(field.name, event.target.value)}>
+                {field.options.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                className="input"
+                id={id}
+                type={field.kind === 'number' ? 'number' : field.kind === 'date' ? 'date' : field.kind === 'email' ? 'email' : 'text'}
+                value={values[field.name] ?? ''}
+                onChange={(event) => onChange(field.name, event.target.value)}
+              />
+            )}
+            {field.help ? <span className="field__hint">{field.help}</span> : null}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function RecordForm({ title, fields, initial, submitLabel = 'Save', busy, error, onSubmit, onCancel }) {
+  const [values, setValues] = useState(initial)
+  const setField = (name, value) => setValues((prev) => ({ ...prev, [name]: value }))
+
+  return (
+    <Modal title={title} onClose={onCancel}>
+      <form
+        className="form-grid"
+        onSubmit={(event) => {
+          event.preventDefault()
+          onSubmit(values)
+        }}
+      >
+        <Fields fields={fields} values={values} onChange={setField} />
+
+        {error ? (
+          <p className="field__error" role="alert">
+            <Icon name="alert" size={14} />
+            {error}
+          </p>
+        ) : null}
+
+        <div className="admin-modal__foot">
+          <button type="button" className="btn btn--quiet" onClick={onCancel} disabled={busy}>
+            Cancel
+          </button>
+          <button type="submit" className="btn btn--primary" disabled={busy}>
+            {busy ? 'Saving…' : submitLabel}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  )
+}
+
+function ConfirmDialog({ title, message, busy, onConfirm, onCancel }) {
+  return (
+    <Modal title={title} onClose={onCancel}>
+      <p className="card__text">{message}</p>
+      <div className="admin-modal__foot">
+        <button type="button" className="btn btn--quiet" onClick={onCancel} disabled={busy}>
+          Cancel
+        </button>
+        <button type="button" className="btn btn--primary" onClick={onConfirm} disabled={busy}>
+          {busy ? 'Working…' : 'Delete'}
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
+/* ---------------------------------------------------------------------------
+   Sign-in
+   --------------------------------------------------------------------------- */
+
+function AdminLogin({ onSubmit, notice }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault()
-    if (!email.trim() || !password.trim()) {
-      setError('Enter an email address and a password.')
+    if (!email.trim() || !password) {
+      setError('Enter your email address and password.')
       return
     }
-    onSignIn()
+    setBusy(true)
+    setError('')
+    try {
+      await onSubmit(email.trim(), password)
+    } catch (err) {
+      setError(err.message || 'Sign in failed.')
+      setBusy(false)
+    }
   }
 
   return (
@@ -178,19 +332,19 @@ function AdminLogin({ onSignIn }) {
             </p>
           ) : null}
 
-          <button type="submit" className="btn btn--primary btn--block">
-            Sign in
-            <Icon name="arrowRight" size={18} />
+          <button type="submit" className="btn btn--primary btn--block" disabled={busy}>
+            {busy ? 'Signing in…' : 'Sign in'}
+            {busy ? null : <Icon name="arrowRight" size={18} />}
           </button>
         </form>
 
-        <div style={{ marginTop: 'var(--sp-5)' }}>
-          <Callout tone="alert" title="Demo sign-in — not real security" icon="shield">
-            This form accepts any email and password and stores nothing but a browser flag. It is a
-            placeholder for a real, server-side sign-in. Do not put this page on the open internet
-            until authentication and authorisation are handled by a backend.
-          </Callout>
-        </div>
+        {notice ? (
+          <div style={{ marginTop: 'var(--sp-5)' }}>
+            <Callout tone="warning" title="Admin API not reachable" icon="alert">
+              {notice}
+            </Callout>
+          </div>
+        ) : null}
 
         <p className="small muted" style={{ marginTop: 'var(--sp-5)' }}>
           <Link to="/">← Back to the website</Link>
@@ -205,53 +359,77 @@ function AdminLogin({ onSignIn }) {
    --------------------------------------------------------------------------- */
 
 export default function Admin() {
-  const [authed, setAuthed] = useState(() => {
-    try {
-      return window.localStorage.getItem(SESSION_KEY) === '1'
-    } catch {
-      return false
-    }
-  })
+  const [status, setStatus] = useState('checking') // checking | signed-out | signed-in
+  const [notice, setNotice] = useState('')
+  const [user, setUser] = useState(null)
   const [panel, setPanel] = useState('overview')
   const [toast, setToast] = useState('')
-  const [settings, setSettings] = useState({
-    name: site.name,
-    email: site.email,
-    phone: site.phoneDisplay,
-    addressLine1: site.addressLine1,
-    addressLine2: site.addressLine2,
-    instagram: site.instagramUrl,
-  })
+  const [data, setData] = useState({ stories: [], news: [], events: [], enquiries: [], donations: [] })
+  const [source, setSource] = useState('loading') // loading | live | sample
+  const [settings, setSettings] = useState(null)
+  const [editor, setEditor] = useState(null) // { type, mode, record }
+  const [confirm, setConfirm] = useState(null) // { type, id, label }
+  const [busy, setBusy] = useState(false)
+  const [formError, setFormError] = useState('')
 
-  /* Records come from Neon via /api/records/<type>; fall back to bundled samples. */
-  const [data, setData] = useState({
-    stories: fallbackStories,
-    news: fallbackNews,
-    events: fallbackEvents,
-    enquiries: SAMPLE_ENQUIRIES,
-    donations: SAMPLE_DONATIONS,
-  })
-  const [source, setSource] = useState('sample')
-
+  /* Who is signed in? */
   useEffect(() => {
-    let cancelled = false
-    Promise.all(RECORD_TYPES.map((type) => fetchRecords(type).then((rows) => [type, rows])))
-      .then((pairs) => {
-        if (cancelled) return
-        const next = {}
-        for (const [type, rows] of pairs) {
-          if (Array.isArray(rows)) next[type] = rows
-        }
-        setData((prev) => ({ ...prev, ...next }))
-        setSource('live')
+    let active = true
+    api
+      .me()
+      .then((current) => {
+        if (!active) return
+        setUser(current)
+        setStatus('signed-in')
       })
-      .catch(() => {
-        if (!cancelled) setSource('sample')
+      .catch((error) => {
+        if (!active) return
+        setStatus('signed-out')
+        if (error.status !== 401) {
+          setNotice(
+            'In development, run `npx vercel dev` so the app is served together with its API — a plain `npm run dev` has no /api.',
+          )
+        }
       })
     return () => {
-      cancelled = true
+      active = false
     }
   }, [])
+
+  /* Load records and settings once signed in. */
+  useEffect(() => {
+    if (status !== 'signed-in') return undefined
+    let active = true
+    ;(async () => {
+      const results = await Promise.all(
+        RECORD_TYPES.map(async (type) => {
+          try {
+            return [type, await api.fetchRecords(type), true]
+          } catch {
+            return [type, FALLBACK[type], false]
+          }
+        }),
+      )
+      if (!active) return
+      const next = {}
+      let live = true
+      for (const [type, rows, ok] of results) {
+        next[type] = rows
+        if (!ok) live = false
+      }
+      setData(next)
+      setSource(live ? 'live' : 'sample')
+      try {
+        const stored = await api.getSettings()
+        if (active) setSettings({ ...defaultSettings(), ...stored })
+      } catch {
+        if (active) setSettings(defaultSettings())
+      }
+    })()
+    return () => {
+      active = false
+    }
+  }, [status])
 
   useEffect(() => {
     if (!toast) return undefined
@@ -259,39 +437,150 @@ export default function Admin() {
     return () => clearTimeout(timer)
   }, [toast])
 
-  const signIn = () => {
-    try {
-      window.localStorage.setItem(SESSION_KEY, '1')
-    } catch {
-      /* Storage blocked — the flag simply will not persist. */
-    }
-    setAuthed(true)
+  const signIn = async (email, password) => {
+    const current = await api.login(email, password)
+    setUser(current)
+    setNotice('')
+    setStatus('signed-in')
   }
 
-  const signOut = () => {
+  const signOut = async () => {
     try {
-      window.localStorage.removeItem(SESSION_KEY)
+      await api.logout()
     } catch {
-      /* ignore */
+      /* sign out locally regardless */
     }
-    setAuthed(false)
+    setUser(null)
+    setPanel('overview')
+    setStatus('signed-out')
   }
 
-  /* Every write is a stub until a backend exists. */
-  const todo = (action) => setToast(`${action} is not connected yet — wire it to your backend.`)
+  const refresh = async (type) => {
+    try {
+      const rows = await api.fetchRecords(type)
+      setData((prev) => ({ ...prev, [type]: rows }))
+      setSource('live')
+    } catch (error) {
+      setToast(error.message)
+    }
+  }
 
-  const { stories, news, events, enquiries, donations } = data
+  const openCreate = (type) => {
+    setFormError('')
+    setEditor({ type, mode: 'create', record: {} })
+  }
 
-  if (!authed) {
+  const openEdit = (type, record) => {
+    setFormError('')
+    setEditor({ type, mode: 'edit', record })
+  }
+
+  const submitRecord = async (values) => {
+    const { type, mode, record } = editor
+    const payload = formToRecord(type, values)
+    setBusy(true)
+    setFormError('')
+    try {
+      if (mode === 'create') await api.createRecord(type, payload)
+      else await api.updateRecord(type, record[PK_FIELD[type]], payload)
+      setEditor(null)
+      await refresh(type)
+      setToast(mode === 'create' ? 'Record created.' : 'Record updated.')
+    } catch (error) {
+      setFormError(error.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const confirmDelete = async () => {
+    const { type, id } = confirm
+    setBusy(true)
+    try {
+      await api.deleteRecord(type, id)
+      setConfirm(null)
+      await refresh(type)
+      setToast('Record deleted.')
+    } catch (error) {
+      setToast(error.message)
+      setConfirm(null)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const changeStatus = async (type, id, nextStatus) => {
+    try {
+      await api.updateRecord(type, id, { status: nextStatus })
+      await refresh(type)
+      setToast(`Marked as ${nextStatus}.`)
+    } catch (error) {
+      setToast(error.message)
+    }
+  }
+
+  const saveOrgSettings = async (values) => {
+    setBusy(true)
+    try {
+      const saved = await api.saveSettings(values)
+      setSettings({ ...defaultSettings(), ...saved })
+      setToast('Settings saved.')
+    } catch (error) {
+      setToast(error.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const exportDonations = () => {
+    const header = ['Reference', 'Donor', 'Amount', 'Type', 'Date', 'Status']
+    const lines = [header, ...data.donations.map((row) => [row.id, row.donor, row.amount, row.type, row.date, row.status])]
+    const csv = lines
+      .map((row) => row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
+      .join('\r\n')
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'donations.csv'
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
+  if (status === 'checking') {
     return (
       <>
-        <Seo title="Admin sign in" path="/admin" noIndex />
-        <AdminLogin onSignIn={signIn} />
+        <Seo title="Admin" path="/admin" noIndex />
+        <div className="admin-login">
+          <div className="card admin-login__card">
+            <p className="card__text">Checking your session…</p>
+          </div>
+        </div>
       </>
     )
   }
 
+  if (status === 'signed-out') {
+    return (
+      <>
+        <Seo title="Admin sign in" path="/admin" noIndex />
+        <AdminLogin onSubmit={signIn} notice={notice} />
+      </>
+    )
+  }
+
+  const { stories, news, events, enquiries, donations } = data
   const active = NAV.find((item) => item.id === panel)
+  const initials = (user?.name || user?.email || 'A')
+    .split(/\s+/)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+  const editorFields = editor
+    ? editor.mode === 'edit'
+      ? RECORD_FIELDS[editor.type].filter((field) => field.name !== PK_FIELD[editor.type])
+      : RECORD_FIELDS[editor.type]
+    : []
 
   return (
     <>
@@ -327,9 +616,7 @@ export default function Admin() {
               >
                 <Icon name={item.icon} size={18} />
                 {item.label}
-                {item.id === 'enquiries' ? (
-                  <span className="admin-nav__count">{enquiries.length}</span>
-                ) : null}
+                {item.id === 'enquiries' ? <span className="admin-nav__count">{enquiries.length}</span> : null}
               </button>
             ))}
           </nav>
@@ -353,21 +640,13 @@ export default function Admin() {
             </div>
 
             <div className="admin__topbar-actions">
-              <label className="search-field admin__search">
-                <span className="search-field__icon">
-                  <Icon name="search" size={16} />
-                </span>
-                <span className="visually-hidden">Search records</span>
-                <input className="input" type="search" placeholder="Search records…" />
-              </label>
-
               <div className="admin-account">
                 <span className="avatar" style={{ width: 36, height: 36, fontSize: 'var(--fs-xs)' }} aria-hidden="true">
-                  AD
+                  {initials}
                 </span>
                 <div className="admin-account__meta">
-                  <span style={{ fontWeight: 600, fontSize: 'var(--fs-sm)' }}>Admin user</span>
-                  <span className="small muted">admin@tirngan.org</span>
+                  <span style={{ fontWeight: 600, fontSize: 'var(--fs-sm)' }}>{user?.name || 'Admin'}</span>
+                  <span className="small muted">{user?.email}</span>
                 </div>
                 <button type="button" className="btn btn--quiet btn--sm" onClick={signOut}>
                   Sign out
@@ -453,8 +732,8 @@ export default function Admin() {
                   icon={source === 'live' ? 'check' : 'alert'}
                 >
                   {source === 'live'
-                    ? 'Records are being read from your Neon database through /api/records.'
-                    : 'Showing bundled sample records. Set DATABASE_URL and serve the app with its API (vercel dev) to read live data from Neon.'}
+                    ? 'Records are being read from your Neon database through /api. Changes you make here appear on the public site.'
+                    : 'Some records could not be loaded from the API, so bundled samples are shown. Edits may not persist.'}
                 </Callout>
               </>
             ) : null}
@@ -466,7 +745,7 @@ export default function Admin() {
                   <h2 id="stories-heading" style={{ fontSize: 'var(--fs-base)' }}>
                     Stories ({stories.length})
                   </h2>
-                  <button type="button" className="btn btn--primary btn--sm" onClick={() => todo('Adding a story')}>
+                  <button type="button" className="btn btn--primary btn--sm" onClick={() => openCreate('stories')}>
                     <Icon name="plus" size={16} />
                     New story
                   </button>
@@ -483,10 +762,14 @@ export default function Admin() {
                       </td>
                       <td>
                         <div className="admin-actions">
-                          <button type="button" className="btn btn--quiet btn--sm" onClick={() => todo('Editing')}>
+                          <button type="button" className="btn btn--quiet btn--sm" onClick={() => openEdit('stories', story)}>
                             Edit
                           </button>
-                          <button type="button" className="btn btn--quiet btn--sm" onClick={() => todo('Deleting')}>
+                          <button
+                            type="button"
+                            className="btn btn--quiet btn--sm"
+                            onClick={() => setConfirm({ type: 'stories', id: story.slug, label: story.title })}
+                          >
                             Delete
                           </button>
                         </div>
@@ -504,7 +787,7 @@ export default function Admin() {
                   <h2 id="news-heading" style={{ fontSize: 'var(--fs-base)' }}>
                     News &amp; blog ({news.length})
                   </h2>
-                  <button type="button" className="btn btn--primary btn--sm" onClick={() => todo('Adding an article')}>
+                  <button type="button" className="btn btn--primary btn--sm" onClick={() => openCreate('news')}>
                     <Icon name="plus" size={16} />
                     New article
                   </button>
@@ -522,10 +805,14 @@ export default function Admin() {
                       </td>
                       <td>
                         <div className="admin-actions">
-                          <button type="button" className="btn btn--quiet btn--sm" onClick={() => todo('Editing')}>
+                          <button type="button" className="btn btn--quiet btn--sm" onClick={() => openEdit('news', article)}>
                             Edit
                           </button>
-                          <button type="button" className="btn btn--quiet btn--sm" onClick={() => todo('Deleting')}>
+                          <button
+                            type="button"
+                            className="btn btn--quiet btn--sm"
+                            onClick={() => setConfirm({ type: 'news', id: article.slug, label: article.title })}
+                          >
                             Delete
                           </button>
                         </div>
@@ -543,7 +830,7 @@ export default function Admin() {
                   <h2 id="events-heading" style={{ fontSize: 'var(--fs-base)' }}>
                     Events ({events.length})
                   </h2>
-                  <button type="button" className="btn btn--primary btn--sm" onClick={() => todo('Adding an event')}>
+                  <button type="button" className="btn btn--primary btn--sm" onClick={() => openCreate('events')}>
                     <Icon name="plus" size={16} />
                     New event
                   </button>
@@ -561,10 +848,14 @@ export default function Admin() {
                       <td>{event.spots}</td>
                       <td>
                         <div className="admin-actions">
-                          <button type="button" className="btn btn--quiet btn--sm" onClick={() => todo('Editing')}>
+                          <button type="button" className="btn btn--quiet btn--sm" onClick={() => openEdit('events', event)}>
                             Edit
                           </button>
-                          <button type="button" className="btn btn--quiet btn--sm" onClick={() => todo('Deleting')}>
+                          <button
+                            type="button"
+                            className="btn btn--quiet btn--sm"
+                            onClick={() => setConfirm({ type: 'events', id: event.id, label: event.title })}
+                          >
                             Delete
                           </button>
                         </div>
@@ -582,7 +873,6 @@ export default function Admin() {
                   <h2 id="enquiries-heading" style={{ fontSize: 'var(--fs-base)' }}>
                     Enquiries ({enquiries.length})
                   </h2>
-                  <StatusBadge status="New" />
                 </div>
 
                 <Table columns={['Reference', 'Name', 'Email', 'Topic', 'Date', 'Status', 'Actions']}>
@@ -598,8 +888,29 @@ export default function Admin() {
                       </td>
                       <td>
                         <div className="admin-actions">
-                          <button type="button" className="btn btn--quiet btn--sm" onClick={() => todo('Replying')}>
-                            Reply
+                          {row.status === 'New' ? (
+                            <button
+                              type="button"
+                              className="btn btn--quiet btn--sm"
+                              onClick={() => changeStatus('enquiries', row.id, 'Replied')}
+                            >
+                              Mark replied
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className="btn btn--quiet btn--sm"
+                              onClick={() => changeStatus('enquiries', row.id, 'New')}
+                            >
+                              Reopen
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="btn btn--quiet btn--sm"
+                            onClick={() => setConfirm({ type: 'enquiries', id: row.id, label: `${row.id} — ${row.name}` })}
+                          >
+                            Delete
                           </button>
                         </div>
                       </td>
@@ -618,30 +929,30 @@ export default function Admin() {
                       <Icon name="gift" size={24} />
                     </span>
                     <p className="stat__value" style={{ fontSize: 'var(--fs-xl)' }}>
-                      ₦1,240,000
+                      {naira(donations.filter((d) => d.status === 'Settled').reduce((sum, d) => sum + Number(d.amount || 0), 0))}
                     </p>
-                    <p className="stat__label">This month</p>
-                    <p className="stat__note">Across 34 gifts</p>
+                    <p className="stat__label">Settled (all time)</p>
+                    <p className="stat__note">{donations.length} gifts on record</p>
                   </div>
                   <div className="stat">
                     <span className="stat__icon">
                       <Icon name="refresh" size={24} />
                     </span>
                     <p className="stat__value" style={{ fontSize: 'var(--fs-xl)' }}>
-                      11
+                      {donations.filter((d) => d.type === 'Monthly').length}
                     </p>
-                    <p className="stat__label">New monthly donors</p>
-                    <p className="stat__note">Recurring giving is up</p>
+                    <p className="stat__label">Monthly donors</p>
+                    <p className="stat__note">Recurring giving</p>
                   </div>
                   <div className="stat">
                     <span className="stat__icon">
                       <Icon name="alert" size={24} />
                     </span>
                     <p className="stat__value" style={{ fontSize: 'var(--fs-xl)' }}>
-                      2
+                      {donations.filter((d) => d.status === 'Pending' || d.status === 'Failed').length}
                     </p>
                     <p className="stat__label">Payments need attention</p>
-                    <p className="stat__note">1 pending · 1 failed</p>
+                    <p className="stat__note">Pending or failed</p>
                   </div>
                 </div>
 
@@ -650,7 +961,7 @@ export default function Admin() {
                     <h2 id="donations-heading" style={{ fontSize: 'var(--fs-base)' }}>
                       Recent donations
                     </h2>
-                    <button type="button" className="btn btn--primary btn--sm" onClick={() => todo('Exporting')}>
+                    <button type="button" className="btn btn--primary btn--sm" onClick={exportDonations}>
                       <Icon name="download" size={16} />
                       Export CSV
                     </button>
@@ -669,9 +980,18 @@ export default function Admin() {
                         </td>
                         <td>
                           <div className="admin-actions">
-                            <button type="button" className="btn btn--quiet btn--sm" onClick={() => todo('Refunding')}>
-                              Refund
+                            <button type="button" className="btn btn--quiet btn--sm" onClick={() => openEdit('donations', row)}>
+                              Edit
                             </button>
+                            {row.status === 'Settled' ? (
+                              <button
+                                type="button"
+                                className="btn btn--quiet btn--sm"
+                                onClick={() => changeStatus('donations', row.id, 'Refunded')}
+                              >
+                                Refund
+                              </button>
+                            ) : null}
                           </div>
                         </td>
                       </tr>
@@ -690,95 +1010,35 @@ export default function Admin() {
                   </h2>
                 </div>
 
-                <form
-                  className="form-grid"
-                  onSubmit={(event) => {
-                    event.preventDefault()
-                    todo('Saving settings')
-                  }}
-                >
-                  <div className="form-grid form-grid--2">
-                    <div className="field">
-                      <label className="field__label" htmlFor="set-name">
-                        Organisation name
-                      </label>
-                      <input
-                        className="input"
-                        id="set-name"
-                        value={settings.name}
-                        onChange={(event) => setSettings((prev) => ({ ...prev, name: event.target.value }))}
-                      />
-                    </div>
-                    <div className="field">
-                      <label className="field__label" htmlFor="set-email">
-                        Public email
-                      </label>
-                      <input
-                        className="input"
-                        id="set-email"
-                        type="email"
-                        value={settings.email}
-                        onChange={(event) => setSettings((prev) => ({ ...prev, email: event.target.value }))}
-                      />
-                    </div>
-                    <div className="field">
-                      <label className="field__label" htmlFor="set-phone">
-                        Phone
-                      </label>
-                      <input
-                        className="input"
-                        id="set-phone"
-                        value={settings.phone}
-                        onChange={(event) => setSettings((prev) => ({ ...prev, phone: event.target.value }))}
-                      />
-                    </div>
-                    <div className="field">
-                      <label className="field__label" htmlFor="set-instagram">
-                        Instagram URL
-                      </label>
-                      <input
-                        className="input"
-                        id="set-instagram"
-                        value={settings.instagram}
-                        onChange={(event) => setSettings((prev) => ({ ...prev, instagram: event.target.value }))}
-                      />
-                    </div>
-                    <div className="field">
-                      <label className="field__label" htmlFor="set-address1">
-                        Address line 1
-                      </label>
-                      <input
-                        className="input"
-                        id="set-address1"
-                        value={settings.addressLine1}
-                        onChange={(event) => setSettings((prev) => ({ ...prev, addressLine1: event.target.value }))}
-                      />
-                    </div>
-                    <div className="field">
-                      <label className="field__label" htmlFor="set-address2">
-                        Address line 2
-                      </label>
-                      <input
-                        className="input"
-                        id="set-address2"
-                        value={settings.addressLine2}
-                        onChange={(event) => setSettings((prev) => ({ ...prev, addressLine2: event.target.value }))}
-                      />
-                    </div>
-                  </div>
+                {settings ? (
+                  <form
+                    className="form-grid"
+                    onSubmit={(event) => {
+                      event.preventDefault()
+                      saveOrgSettings(settings)
+                    }}
+                  >
+                    <Fields
+                      fields={SETTINGS_FIELDS}
+                      values={settings}
+                      onChange={(name, value) => setSettings((prev) => ({ ...prev, [name]: value }))}
+                    />
 
-                  <div className="form-grid__full">
-                    <button type="submit" className="btn btn--primary">
-                      Save changes
-                      <Icon name="check" size={18} />
-                    </button>
-                  </div>
-                </form>
+                    <div className="form-grid__full">
+                      <button type="submit" className="btn btn--primary" disabled={busy}>
+                        {busy ? 'Saving…' : 'Save changes'}
+                        {busy ? null : <Icon name="check" size={18} />}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <p className="card__text">Loading settings…</p>
+                )}
 
                 <div style={{ marginTop: 'var(--sp-6)' }}>
-                  <Callout tone="warning" title="Not wired to anything yet" icon="alert">
-                    These fields are not saved anywhere. Connect them to your backend (or your CMS)
-                    so they update the public site. Until then, edit <code>src/data/site.js</code>.
+                  <Callout tone="info" title="Shown on the public site" icon="globe">
+                    These details are saved to your database and used by the public site (header, footer
+                    and contact pages).
                   </Callout>
                 </div>
               </section>
@@ -786,6 +1046,33 @@ export default function Admin() {
           </div>
         </div>
       </div>
+
+      {editor ? (
+        <RecordForm
+          title={
+            editor.mode === 'create'
+              ? `New ${editor.type.replace(/s$/, '')}`
+              : `Edit ${editor.type.replace(/s$/, '')}`
+          }
+          fields={editorFields}
+          initial={recordToForm(editor.type, editor.record)}
+          submitLabel={editor.mode === 'create' ? 'Create' : 'Save changes'}
+          busy={busy}
+          error={formError}
+          onSubmit={submitRecord}
+          onCancel={() => setEditor(null)}
+        />
+      ) : null}
+
+      {confirm ? (
+        <ConfirmDialog
+          title="Delete record"
+          message={`Delete “${confirm.label}”? This cannot be undone.`}
+          busy={busy}
+          onConfirm={confirmDelete}
+          onCancel={() => setConfirm(null)}
+        />
+      ) : null}
 
       {toast ? (
         <div className="admin-toast" role="status" aria-live="polite">

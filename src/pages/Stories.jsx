@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import Seo, { breadcrumbSchema } from '../components/Seo'
 import Icon from '../components/Icon'
 import { PageHero, SectionHead, FilterTabs, MediaCard, Callout, CtaBanner } from '../components/Ui'
-import { stories, storyCategories } from '../data/site'
+import { stories as staticStories, storyCategories } from '../data/site'
+import { useCollection } from '../lib/content'
 
 /**
  * Stories — filterable grid of community stories.
@@ -13,11 +14,12 @@ import { stories, storyCategories } from '../data/site'
  * visible "Sample" chip so nothing ships by accident.
  */
 export default function Stories() {
+  const stories = useCollection('stories', staticStories)
   const [category, setCategory] = useState('All')
 
   const filtered = useMemo(
     () => (category === 'All' ? stories : stories.filter((s) => s.category === category)),
-    [category],
+    [stories, category],
   )
 
   return (

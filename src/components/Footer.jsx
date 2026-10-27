@@ -1,13 +1,15 @@
 import { Link } from 'react-router-dom'
 import Icon from './Icon'
 import { NewsletterForm } from './Ui'
-import { site, footerLinks, legalPages } from '../data/site'
+import { footerLinks, legalPages } from '../data/site'
+import { useOrgSettings } from '../lib/content'
 import logo from '../assets/logo.jpg'
 
 /**
  * Footer — quick links, newsletter, socials, registration number, legal links.
  */
 export default function Footer() {
+  const site = useOrgSettings()
   const year = new Date().getFullYear()
 
   return (

@@ -99,3 +99,40 @@ create index if not exists news_date_idx         on news (date desc);
 create index if not exists events_date_idx       on events (date);
 create index if not exists enquiries_status_idx  on enquiries (status);
 create index if not exists donations_date_idx    on donations (date desc);
+
+
+-- ---------------------------------------------------------------------------
+-- ADMIN ACCOUNTS  (server-side authentication for /admin)
+-- ---------------------------------------------------------------------------
+create table if not exists admin_users (
+  id            bigserial   primary key,
+  email         text        not null unique,   -- stored lower-cased
+  name          text        not null default '',
+  role          text        not null default 'admin',
+  password_hash text        not null,          -- scrypt$N$r$p$salt$hash
+  created_at    timestamptz not null default now(),
+  last_login_at timestamptz
+);
+
+
+-- ---------------------------------------------------------------------------
+-- ADMIN SESSIONS  (token_hash is sha256 of the cookie token, never the token)
+-- ---------------------------------------------------------------------------
+create table if not exists admin_sessions (
+  token_hash text        primary key,
+  user_id    bigint      not null references admin_users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null
+);
+create index if not exists admin_sessions_user_idx    on admin_sessions (user_id);
+create index if not exists admin_sessions_expires_idx on admin_sessions (expires_at);
+
+
+-- ---------------------------------------------------------------------------
+-- SETTINGS  (organisation details edited in the console, key -> JSON)
+-- ---------------------------------------------------------------------------
+create table if not exists settings (
+  key        text        primary key,
+  value      jsonb       not null,
+  updated_at timestamptz not null default now()
+);

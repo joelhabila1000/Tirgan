@@ -3,7 +3,8 @@ import Seo, { articleSchema } from '../components/Seo'
 import Icon from '../components/Icon'
 import StoryArt from '../components/Rbc'
 import { Breadcrumbs, Callout, CtaBanner, MediaCard, PlaceholderTag } from '../components/Ui'
-import { news, site } from '../data/site'
+import { news as staticNews, site } from '../data/site'
+import { useCollection } from '../lib/content'
 
 /**
  * Article — a single news post or blog article.
@@ -17,6 +18,7 @@ const formatDate = (iso) =>
 
 export default function Article() {
   const { slug } = useParams()
+  const news = useCollection('news', staticNews)
   const article = news.find((n) => n.slug === slug)
 
   if (!article) {

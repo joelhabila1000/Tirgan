@@ -20,6 +20,10 @@ dist-ssr
 # Command Code agent state
 .commandcode/
 
+# Local credential dumps — never commit
+env.txt
+*.env.txt
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

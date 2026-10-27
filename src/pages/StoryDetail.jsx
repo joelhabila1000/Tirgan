@@ -3,7 +3,8 @@ import Seo, { breadcrumbSchema } from '../components/Seo'
 import Icon from '../components/Icon'
 import StoryArt from '../components/Rbc'
 import { Breadcrumbs, Callout, CtaBanner, MediaCard, PlaceholderTag } from '../components/Ui'
-import { stories, site } from '../data/site'
+import { stories as staticStories, site } from '../data/site'
+import { useCollection } from '../lib/content'
 
 /**
  * StoryDetail — a single community story.
@@ -14,6 +15,7 @@ import { stories, site } from '../data/site'
  */
 export default function StoryDetail() {
   const { slug } = useParams()
+  const stories = useCollection('stories', staticStories)
   const story = stories.find((s) => s.slug === slug)
 
   if (!story) {

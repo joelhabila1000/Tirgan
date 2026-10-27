@@ -13,12 +13,13 @@ types.setTypeParser(1700, (value) => Number(value))
 
 /**
  * Record types the API will serve, with the mapping between the field names the
- * front end uses and the snake_case columns in Postgres. Every column name here
- * is a fixed string, so it is safe to interpolate into SQL. Values are always
- * passed as query parameters.
+ * front end uses and the snake_case columns in Postgres. `pk` is the field used
+ * as the primary key. Every column name here is a fixed string, so it is safe to
+ * interpolate into SQL. Values are always passed as query parameters.
  */
 const TABLES = {
   stories: {
+    pk: 'slug',
     fields: {
       slug: 'slug',
       placeholder: 'placeholder',
@@ -34,6 +35,7 @@ const TABLES = {
     order: 'title asc',
   },
   news: {
+    pk: 'slug',
     fields: {
       slug: 'slug',
       placeholder: 'placeholder',
@@ -52,6 +54,7 @@ const TABLES = {
     order: 'date desc nulls last',
   },
   events: {
+    pk: 'id',
     fields: {
       id: 'id',
       title: 'title',
@@ -65,6 +68,7 @@ const TABLES = {
     order: 'date asc nulls last',
   },
   enquiries: {
+    pk: 'id',
     fields: {
       id: 'id',
       name: 'name',
@@ -76,6 +80,7 @@ const TABLES = {
     order: 'date desc nulls last',
   },
   donations: {
+    pk: 'id',
     fields: {
       id: 'id',
       donor: 'donor',
@@ -114,6 +119,8 @@ const selectList = (config) =>
     .map(([field, column]) => `"${column}" as "${field}"`)
     .join(', ')
 
+const pkColumn = (config) => `"${config.fields[config.pk]}"`
+
 export async function listRecords(type) {
   const config = TABLES[type]
   const { rows } = await getPool().query(`select ${selectList(config)} from ${type} order by ${config.order}`)
@@ -134,4 +141,29 @@ export async function createRecord(type, payload) {
     values,
   )
   return rows[0]
+}
+
+export async function updateRecord(type, id, patch) {
+  const config = TABLES[type]
+  const entries = Object.entries(config.fields).filter(([field]) => field !== config.pk && patch?.[field] !== undefined)
+  if (!entries.length) {
+    throw new Error('No recognised fields to update')
+  }
+  const assignments = entries.map(([, column], index) => `"${column}" = $${index + 1}`)
+  const values = entries.map(([field]) => patch[field])
+  values.push(id)
+  const { rows } = await getPool().query(
+    `update ${type} set ${assignments.join(', ')} where ${pkColumn(config)} = $${values.length} returning ${selectList(config)}`,
+    values,
+  )
+  return rows[0] ?? null
+}
+
+export async function deleteRecord(type, id) {
+  const config = TABLES[type]
+  const { rows } = await getPool().query(
+    `delete from ${type} where ${pkColumn(config)} = $1 returning ${pkColumn(config)}`,
+    [id],
+  )
+  return rows[0] ? rows[0][config.pk] : null
 }

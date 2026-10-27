@@ -126,3 +126,29 @@ insert into donations (id, donor, amount, type, date, status) values
   ('DON-3085', 'Anonymous', 5000, 'Monthly', '2026-10-15', 'Settled'),
   ('DON-3081', 'B. Danladi', 40000, 'One-off', '2026-10-12', 'Failed')
 on conflict (id) do nothing;
+
+
+-- ---------------------------------------------------------------------------
+-- SETTINGS  (organisation details; edited in the console, read by the site)
+-- ---------------------------------------------------------------------------
+insert into settings (key, value) values (
+  'organisation',
+  '{
+    "name": "Tirngan Sickle Cell Foundation",
+    "shortName": "Tirngan",
+    "url": "https://www.tirngan.org",
+    "email": "info@tirngan.org",
+    "emailDonations": "donate@tirngan.org",
+    "emailSupport": "support@tirngan.org",
+    "phoneDisplay": "+234 800 000 0000",
+    "phoneHref": "+2348000000000",
+    "whatsappDisplay": "+234 800 000 0000",
+    "whatsappHref": "2348000000000",
+    "instagramUrl": "https://www.instagram.com/tirngan_sickel_cell_foundation/",
+    "addressLine1": "12 Sultan Road",
+    "addressLine2": "Kaduna, Kaduna State 800001",
+    "addressCountry": "Nigeria",
+    "emergencyNumber": "112"
+  }'::jsonb
+)
+on conflict (key) do nothing;
