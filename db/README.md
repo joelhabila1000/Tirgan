@@ -70,6 +70,7 @@ the browser as an HttpOnly cookie (`tf_session`).
 | `GET /api/auth/me` | cookie | Current user |
 | `GET/POST/PATCH/DELETE /api/records/:type` | **required** | Console records (`?id=` for update/delete) |
 | `GET/PUT /api/settings` | **required** | Organisation details |
+| `GET/POST/PATCH/DELETE /api/admins` | **required** | Console accounts (`?id=` for update/delete) |
 | `GET /api/public/:type` | – | `stories`, `news`, `events`, `settings` for the public site |
 | `GET /api/health` | – | Connectivity check |
 

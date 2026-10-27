@@ -5,7 +5,15 @@ import Icon from '../components/Icon'
 import { Callout } from '../components/Ui'
 import { site, stories as fallbackStories, news as fallbackNews, events as fallbackEvents } from '../data/site'
 import * as api from '../lib/api'
-import { PK_FIELD, RECORD_FIELDS, SETTINGS_FIELDS, recordToForm, formToRecord } from '../lib/fields'
+import {
+  ADMIN_EDIT_FIELDS,
+  ADMIN_FIELDS,
+  PK_FIELD,
+  RECORD_FIELDS,
+  SETTINGS_FIELDS,
+  recordToForm,
+  formToRecord,
+} from '../lib/fields'
 
 /**
  * Admin — the foundation's admin console.
@@ -67,6 +75,7 @@ const NAV = [
   { id: 'events', label: 'Events', icon: 'calendar' },
   { id: 'enquiries', label: 'Enquiries', icon: 'mail' },
   { id: 'donations', label: 'Donations', icon: 'gift' },
+  { id: 'admins', label: 'Admins', icon: 'users' },
   { id: 'settings', label: 'Settings', icon: 'shield' },
 ]
 
@@ -84,6 +93,8 @@ const buildKpis = (data) => [
 
 const naira = (value) =>
   new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(value)
+
+const formatWhen = (iso) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 
 const BADGE_TONE = {
   New: 'badge--red',
@@ -184,7 +195,8 @@ function Fields({ fields, values, onChange }) {
               <input
                 className="input"
                 id={id}
-                type={field.kind === 'number' ? 'number' : field.kind === 'date' ? 'date' : field.kind === 'email' ? 'email' : 'text'}
+                type={['number', 'date', 'email', 'password'].includes(field.kind) ? field.kind : 'text'}
+                autoComplete={field.kind === 'password' ? 'new-password' : undefined}
                 value={values[field.name] ?? ''}
                 onChange={(event) => onChange(field.name, event.target.value)}
               />
@@ -367,6 +379,7 @@ export default function Admin() {
   const [data, setData] = useState({ stories: [], news: [], events: [], enquiries: [], donations: [] })
   const [source, setSource] = useState('loading') // loading | live | sample
   const [settings, setSettings] = useState(null)
+  const [admins, setAdmins] = useState([])
   const [editor, setEditor] = useState(null) // { type, mode, record }
   const [confirm, setConfirm] = useState(null) // { type, id, label }
   const [busy, setBusy] = useState(false)
@@ -431,6 +444,23 @@ export default function Admin() {
     }
   }, [status])
 
+  /* Load the admin list when that panel is opened. */
+  useEffect(() => {
+    if (status !== 'signed-in' || panel !== 'admins') return undefined
+    let active = true
+    api
+      .listAdmins()
+      .then((rows) => {
+        if (active) setAdmins(rows)
+      })
+      .catch((error) => {
+        if (active) setToast(error.message)
+      })
+    return () => {
+      active = false
+    }
+  }, [status, panel])
+
   useEffect(() => {
     if (!toast) return undefined
     const timer = setTimeout(() => setToast(''), 4200)
@@ -465,6 +495,14 @@ export default function Admin() {
     }
   }
 
+  const refreshAdmins = async () => {
+    try {
+      setAdmins(await api.listAdmins())
+    } catch (error) {
+      setToast(error.message)
+    }
+  }
+
   const openCreate = (type) => {
     setFormError('')
     setEditor({ type, mode: 'create', record: {} })
@@ -493,14 +531,43 @@ export default function Admin() {
     }
   }
 
+  const submitAdmin = async (values) => {
+    const { mode, record } = editor
+    setBusy(true)
+    setFormError('')
+    try {
+      if (mode === 'create') {
+        await api.createAdmin({ name: values.name, email: values.email, password: values.password })
+        setToast('Admin account created.')
+      } else {
+        const patch = { name: values.name }
+        if (values.password) patch.password = values.password
+        await api.updateAdmin(record.id, patch)
+        setToast('Admin account updated.')
+      }
+      setEditor(null)
+      await refreshAdmins()
+    } catch (error) {
+      setFormError(error.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const confirmDelete = async () => {
     const { type, id } = confirm
     setBusy(true)
     try {
-      await api.deleteRecord(type, id)
+      if (type === 'admins') {
+        await api.deleteAdmin(id)
+        await refreshAdmins()
+        setToast('Admin account removed.')
+      } else {
+        await api.deleteRecord(type, id)
+        await refresh(type)
+        setToast('Record deleted.')
+      }
       setConfirm(null)
-      await refresh(type)
-      setToast('Record deleted.')
     } catch (error) {
       setToast(error.message)
       setConfirm(null)
@@ -576,11 +643,23 @@ export default function Admin() {
     .slice(0, 2)
     .join('')
     .toUpperCase()
-  const editorFields = editor
-    ? editor.mode === 'edit'
-      ? RECORD_FIELDS[editor.type].filter((field) => field.name !== PK_FIELD[editor.type])
-      : RECORD_FIELDS[editor.type]
-    : []
+  const editorFields = !editor
+    ? []
+    : editor.type === 'admins'
+      ? editor.mode === 'edit'
+        ? ADMIN_EDIT_FIELDS
+        : ADMIN_FIELDS
+      : editor.mode === 'edit'
+        ? RECORD_FIELDS[editor.type].filter((field) => field.name !== PK_FIELD[editor.type])
+        : RECORD_FIELDS[editor.type]
+
+  const editorInitial = !editor
+    ? {}
+    : editor.type === 'admins'
+      ? editor.mode === 'edit'
+        ? { name: editor.record.name ?? '', password: '' }
+        : { name: '', email: '', password: '' }
+      : recordToForm(editor.type, editor.record)
 
   return (
     <>
@@ -1001,6 +1080,55 @@ export default function Admin() {
               </>
             ) : null}
 
+            {/* ================= ADMINS ================= */}
+            {panel === 'admins' ? (
+              <section className="admin-panel" aria-labelledby="admins-heading">
+                <div className="admin-panel__head">
+                  <h2 id="admins-heading" style={{ fontSize: 'var(--fs-base)' }}>
+                    Admins ({admins.length})
+                  </h2>
+                  <button type="button" className="btn btn--primary btn--sm" onClick={() => openCreate('admins')}>
+                    <Icon name="plus" size={16} />
+                    New admin
+                  </button>
+                </div>
+
+                <Table columns={['Name', 'Email', 'Last sign-in', 'Actions']}>
+                  {admins.map((admin) => (
+                    <tr key={admin.id}>
+                      <td>
+                        {admin.name || '—'}
+                        {String(admin.id) === String(user?.id) ? ' (you)' : ''}
+                      </td>
+                      <td>{admin.email}</td>
+                      <td>{admin.lastLoginAt ? formatWhen(admin.lastLoginAt) : 'Never'}</td>
+                      <td>
+                        <div className="admin-actions">
+                          <button type="button" className="btn btn--quiet btn--sm" onClick={() => openEdit('admins', admin)}>
+                            Reset password
+                          </button>
+                          {String(admin.id) === String(user?.id) ? null : (
+                            <button
+                              type="button"
+                              className="btn btn--quiet btn--sm"
+                              onClick={() => setConfirm({ type: 'admins', id: admin.id, label: admin.email })}
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </Table>
+
+                <Callout tone="info" title="Who can do what" icon="shield">
+                  Anyone signed in here can add or remove other admins and edit all content. Keep the
+                  number of accounts small, and remove anyone who no longer needs access.
+                </Callout>
+              </section>
+            ) : null}
+
             {/* ================= SETTINGS ================= */}
             {panel === 'settings' ? (
               <section className="admin-panel admin-panel--form" aria-labelledby="settings-heading">
@@ -1050,24 +1178,32 @@ export default function Admin() {
       {editor ? (
         <RecordForm
           title={
-            editor.mode === 'create'
-              ? `New ${editor.type.replace(/s$/, '')}`
-              : `Edit ${editor.type.replace(/s$/, '')}`
+            editor.type === 'admins'
+              ? editor.mode === 'create'
+                ? 'New admin'
+                : 'Edit admin'
+              : editor.mode === 'create'
+                ? `New ${editor.type.replace(/s$/, '')}`
+                : `Edit ${editor.type.replace(/s$/, '')}`
           }
           fields={editorFields}
-          initial={recordToForm(editor.type, editor.record)}
+          initial={editorInitial}
           submitLabel={editor.mode === 'create' ? 'Create' : 'Save changes'}
           busy={busy}
           error={formError}
-          onSubmit={submitRecord}
+          onSubmit={editor.type === 'admins' ? submitAdmin : submitRecord}
           onCancel={() => setEditor(null)}
         />
       ) : null}
 
       {confirm ? (
         <ConfirmDialog
-          title="Delete record"
-          message={`Delete “${confirm.label}”? This cannot be undone.`}
+          title={confirm.type === 'admins' ? 'Remove admin' : 'Delete record'}
+          message={
+            confirm.type === 'admins'
+              ? `Remove the admin account “${confirm.label}”? They will be signed out and lose access.`
+              : `Delete “${confirm.label}”? This cannot be undone.`
+          }
           busy={busy}
           onConfirm={confirmDelete}
           onCancel={() => setConfirm(null)}

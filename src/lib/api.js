@@ -59,6 +59,14 @@ export const deleteRecord = (type, id) =>
 export const getSettings = () => request('/settings').then((r) => r.data)
 export const saveSettings = (values) => request('/settings', send('PUT', values)).then((r) => r.data)
 
+/* --- administrator accounts -------------------------------------------- */
+export const listAdmins = () => request('/admins').then((r) => r.data)
+export const createAdmin = (values) => request('/admins', send('POST', values)).then((r) => r.data)
+export const updateAdmin = (id, values) =>
+  request(`/admins?id=${encodeURIComponent(id)}`, send('PATCH', values)).then((r) => r.data)
+export const deleteAdmin = (id) =>
+  request(`/admins?id=${encodeURIComponent(id)}`, { method: 'DELETE' }).then((r) => r.data)
+
 /* --- public (no auth) -------------------------------------------------- */
 export const fetchPublic = (type) => request(`/public/${type}`).then((r) => r.data)
 export const checkHealth = () => request('/health')

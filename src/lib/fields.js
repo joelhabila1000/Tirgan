@@ -62,6 +62,17 @@ export const RECORD_FIELDS = {
   ],
 }
 
+export const ADMIN_FIELDS = [
+  { name: 'name', label: 'Full name', kind: 'text' },
+  { name: 'email', label: 'Email address', kind: 'email' },
+  { name: 'password', label: 'Password', kind: 'password', help: 'At least 8 characters' },
+]
+
+export const ADMIN_EDIT_FIELDS = [
+  { name: 'name', label: 'Full name', kind: 'text' },
+  { name: 'password', label: 'New password', kind: 'password', help: 'Leave blank to keep the current password' },
+]
+
 export const SETTINGS_FIELDS = [
   { name: 'name', label: 'Organisation name', kind: 'text' },
   { name: 'url', label: 'Website URL', kind: 'text' },
