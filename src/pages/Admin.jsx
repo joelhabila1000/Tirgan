@@ -883,15 +883,11 @@ export default function Admin() {
                   </section>
                 </div>
 
-                <Callout
-                  tone={source === 'live' ? 'info' : 'warning'}
-                  title={source === 'live' ? 'Live data' : 'Sample data'}
-                  icon={source === 'live' ? 'check' : 'alert'}
-                >
-                  {source === 'live'
-                    ? 'Records are being read from your Neon database through /api. Changes you make here appear on the public site.'
-                    : 'Some records could not be loaded from the API, so bundled samples are shown. Edits may not persist.'}
-                </Callout>
+                {source === 'sample' ? (
+                  <Callout tone="warning" title="Sample data" icon="alert">
+                    Some records could not be loaded from the API, so bundled samples are shown. Edits may not persist.
+                  </Callout>
+                ) : null}
               </>
             ) : null}
 
