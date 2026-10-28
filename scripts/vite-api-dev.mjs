@@ -75,6 +75,13 @@ export default function apiDevPlugin() {
             res.end(JSON.stringify(payload))
             return res
           }
+          /* Some handlers (e.g. images) send raw bytes or text. */
+          res.send = (payload) => {
+            if (Buffer.isBuffer(payload) || typeof payload === 'string') res.end(payload)
+            else if (payload === undefined || payload === null) res.end()
+            else res.end(JSON.stringify(payload))
+            return res
+          }
 
           await handler(req, res)
         } catch (error) {

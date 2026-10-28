@@ -66,6 +66,7 @@ export default function Stories() {
                   <MediaCard
                     key={story.slug}
                     to={`/stories/${story.slug}`}
+                    imageId={story.imageId}
                     art={story.art}
                     tone={story.tone}
                     tag={story.category}

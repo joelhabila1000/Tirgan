@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from './Icon'
 import StoryArt from './Rbc'
+import { imageUrl } from '../lib/api'
 
 /**
  * Shared UI kit.
@@ -654,11 +655,12 @@ export function MediaCard({
   placeholder = false,
   imgSlot = false,
   imgSlotLabel,
+  imageId,
 }) {
   const Inner = (
     <>
       <div className={`media-card__media media-card__media--${tone}`}>
-        <StoryArt name={art} />
+        {imageId ? <img className="media-card__img" src={imageUrl(imageId)} alt="" loading="lazy" /> : <StoryArt name={art} />}
         {tag ? <span className="badge media-card__tag">{tag}</span> : null}
         {imgSlot ? <ImgSlot label={imgSlotLabel} /> : null}
       </div>
@@ -745,6 +747,9 @@ export function EventCard({ event, idPrefix = 'ev' }) {
 
   return (
     <article className="event-card">
+      {event.imageId ? (
+        <img className="event-card__img" src={imageUrl(event.imageId)} alt="" loading="lazy" />
+      ) : null}
       <div className="event-card__date">
         <span className="event-card__month">{month}</span>
         <span className="event-card__day">{day}</span>

@@ -16,6 +16,7 @@ import {
 } from '../components/Ui'
 import { impactStats, programs, stories as staticStories, events as staticEvents, partners, site, medicalDisclaimer } from '../data/site'
 import { useCollection } from '../lib/content'
+import { imageUrl } from '../lib/api'
 
 /**
  * Home — the front door.
@@ -318,9 +319,13 @@ export default function Home() {
                   </span>
                   <p className="quote__text">{story.quote}</p>
                   <div className="quote__author">
-                    <span className="avatar" style={{ width: 52, height: 52 }}>
-                      {story.art === 'cells' ? 'TF' : 'SC'}
-                    </span>
+                    {story.imageId ? (
+                      <img className="quote__avatar-img" src={imageUrl(story.imageId)} alt="" />
+                    ) : (
+                      <span className="avatar" style={{ width: 52, height: 52 }}>
+                        {story.art === 'cells' ? 'TF' : 'SC'}
+                      </span>
+                    )}
                     <span className="quote__meta">
                       <span className="quote__name">{story.name}</span>
                       <span className="quote__role">

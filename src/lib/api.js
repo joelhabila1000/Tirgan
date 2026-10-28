@@ -67,6 +67,12 @@ export const updateAdmin = (id, values) =>
 export const deleteAdmin = (id) =>
   request(`/admins?id=${encodeURIComponent(id)}`, { method: 'DELETE' }).then((r) => r.data)
 
+/* --- images ------------------------------------------------------------ */
+export const uploadImage = (dataUrl) => request('/images', send('POST', { data: dataUrl })).then((r) => r.data)
+
+/** Public URL for a stored image id. */
+export const imageUrl = (id) => `/api/public/images/${id}`
+
 /* --- public (no auth) -------------------------------------------------- */
 export const fetchPublic = (type) => request(`/public/${type}`).then((r) => r.data)
 export const checkHealth = () => request('/health')

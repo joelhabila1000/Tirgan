@@ -5,6 +5,7 @@ import Icon from '../components/Icon'
 import { PageHero, FilterTabs, MediaCard, Callout, CtaBanner, PlaceholderTag } from '../components/Ui'
 import { news as staticNews, newsCategories } from '../data/site'
 import { useCollection } from '../lib/content'
+import { imageUrl } from '../lib/api'
 
 /**
  * News — announcements, updates and the blog.
@@ -61,6 +62,7 @@ export default function News() {
               style={{ display: 'grid', gap: 'var(--sp-5)', padding: 0, overflow: 'hidden' }}
             >
               <div className={`media-card__media media-card__media--${featured.tone}`} style={{ aspectRatio: '21 / 9' }}>
+                {featured.imageId ? <img className="media-card__img" src={imageUrl(featured.imageId)} alt="" /> : null}
                 <PlaceholderTag />
                 <span className="badge media-card__tag">Featured · {featured.category}</span>
               </div>
@@ -112,6 +114,7 @@ export default function News() {
                 <MediaCard
                   key={article.slug}
                   to={`/news/${article.slug}`}
+                  imageId={article.imageId}
                   art={article.art}
                   tone={article.tone}
                   tag={article.category}

@@ -5,6 +5,7 @@ import StoryArt from '../components/Rbc'
 import { Breadcrumbs, Callout, CtaBanner, MediaCard, PlaceholderTag } from '../components/Ui'
 import { stories as staticStories, site } from '../data/site'
 import { useCollection } from '../lib/content'
+import { imageUrl } from '../lib/api'
 
 /**
  * StoryDetail — a single community story.
@@ -83,9 +84,13 @@ export default function StoryDetail() {
             </div>
           </header>
 
-          <div className="article-hero-art" aria-hidden="true">
-            <StoryArt name={story.art} />
-          </div>
+          {story.imageId ? (
+            <img className="article-hero-img" src={imageUrl(story.imageId)} alt="" />
+          ) : (
+            <div className="article-hero-art" aria-hidden="true">
+              <StoryArt name={story.art} />
+            </div>
+          )}
 
           <div className="article-body" style={{ marginTop: 'var(--sp-7)' }}>
             <div>

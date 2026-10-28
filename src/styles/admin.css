@@ -349,3 +349,39 @@
 .admin--readonly .table-wrap--actions td:last-child {
   display: none;
 }
+
+/* ---------------------------------------------------------------------------
+   Image upload field (records with a photo or flier)
+   --------------------------------------------------------------------------- */
+.image-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+.image-field__preview {
+  width: 132px;
+  height: 92px;
+  object-fit: cover;
+  border: 1px solid var(--cream-300);
+}
+
+.image-field__empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  width: 132px;
+  height: 92px;
+  background: var(--cream-200);
+  border: 1px dashed var(--cream-300);
+  color: var(--ink-600);
+  font-size: var(--fs-sm);
+}
+
+.image-field__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}

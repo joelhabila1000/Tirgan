@@ -12,6 +12,7 @@ export const RECORD_FIELDS = {
   stories: [
     { name: 'slug', label: 'Slug', kind: 'text', help: 'URL id, e.g. patient-1' },
     { name: 'title', label: 'Title', kind: 'text' },
+    { name: 'imageId', label: 'Photo', kind: 'image', help: 'Shown on the card and at the top of the story' },
     { name: 'category', label: 'Category', kind: 'select', options: ['Patients', 'Caregivers', 'Volunteers'] },
     { name: 'name', label: 'Name', kind: 'text' },
     { name: 'role', label: 'Role', kind: 'text' },
@@ -24,6 +25,7 @@ export const RECORD_FIELDS = {
   news: [
     { name: 'slug', label: 'Slug', kind: 'text' },
     { name: 'title', label: 'Title', kind: 'text' },
+    { name: 'imageId', label: 'Photo or flier', kind: 'image', help: 'Shown on the card and at the top of the article' },
     { name: 'category', label: 'Category', kind: 'select', options: ['Programmes', 'Events', 'Awareness', 'Advocacy', 'Living Well', 'Volunteers'] },
     { name: 'date', label: 'Date', kind: 'date' },
     { name: 'author', label: 'Author', kind: 'text' },
@@ -39,6 +41,7 @@ export const RECORD_FIELDS = {
   events: [
     { name: 'id', label: 'Reference', kind: 'text', help: 'e.g. screening-nov-26' },
     { name: 'title', label: 'Title', kind: 'text' },
+    { name: 'imageId', label: 'Photo or flier', kind: 'image', help: 'Shown on the event card and the events page' },
     { name: 'date', label: 'Date', kind: 'date' },
     { name: 'time', label: 'Time', kind: 'text', help: 'e.g. 09:00 – 15:00' },
     { name: 'location', label: 'Location', kind: 'text' },
@@ -115,6 +118,7 @@ export function formToRecord(type, values) {
       record[field.name] = String(value ?? '').split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean)
     else if (field.kind === 'number') record[field.name] = value === '' || value == null ? 0 : Number(value)
     else if (field.kind === 'date') record[field.name] = value || null
+    else if (field.kind === 'image') record[field.name] = value || null
     else record[field.name] = value ?? ''
   }
   return record

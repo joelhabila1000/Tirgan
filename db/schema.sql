@@ -138,6 +138,23 @@ create index if not exists admin_sessions_expires_idx on admin_sessions (expires
 
 
 -- ---------------------------------------------------------------------------
+-- IMAGES  (uploaded photos and fliers; served at /api/public/images/:id)
+-- ---------------------------------------------------------------------------
+create table if not exists images (
+  id         uuid        primary key default gen_random_uuid(),
+  mime_type  text        not null,
+  size_bytes integer     not null,
+  data       bytea       not null,
+  created_at timestamptz not null default now()
+);
+
+-- Every content record may point at one image.
+alter table events  add column if not exists image_id uuid references images(id) on delete set null;
+alter table news    add column if not exists image_id uuid references images(id) on delete set null;
+alter table stories add column if not exists image_id uuid references images(id) on delete set null;
+
+
+-- ---------------------------------------------------------------------------
 -- SETTINGS  (organisation details edited in the console, key -> JSON)
 -- ---------------------------------------------------------------------------
 create table if not exists settings (

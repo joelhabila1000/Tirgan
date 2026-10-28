@@ -5,6 +5,7 @@ import Icon from '../components/Icon'
 import { Callout } from '../components/Ui'
 import { site, stories as fallbackStories, news as fallbackNews, events as fallbackEvents } from '../data/site'
 import * as api from '../lib/api'
+import { fileToResizedDataUrl } from '../lib/image'
 import {
   ADMIN_EDIT_FIELDS,
   ADMIN_FIELDS,
@@ -156,6 +157,25 @@ function Modal({ title, onClose, children }) {
 }
 
 function Fields({ fields, values, onChange }) {
+  const [uploading, setUploading] = useState('')
+  const [imageError, setImageError] = useState('')
+
+  const handleImage = async (name, file, input) => {
+    if (!file) return
+    setImageError('')
+    setUploading(name)
+    try {
+      const dataUrl = await fileToResizedDataUrl(file)
+      const image = await api.uploadImage(dataUrl)
+      onChange(name, image.id)
+    } catch (error) {
+      setImageError(error.message)
+    } finally {
+      setUploading('')
+      if (input) input.value = ''
+    }
+  }
+
   return (
     <div className="form-grid form-grid--2">
       {fields.map((field) => {
@@ -171,6 +191,46 @@ function Fields({ fields, values, onChange }) {
               />
               <span>{field.label}</span>
             </label>
+          )
+        }
+        if (field.kind === 'image') {
+          return (
+            <div className="field record-form__wide" key={field.name}>
+              <span className="field__label">{field.label}</span>
+              <div className="image-field">
+                {values[field.name] ? (
+                  <img className="image-field__preview" src={api.imageUrl(values[field.name])} alt="" />
+                ) : (
+                  <span className="image-field__empty">
+                    <Icon name="file" size={20} />
+                    No image yet
+                  </span>
+                )}
+                <div className="image-field__actions">
+                  <label className="btn btn--outline btn--sm">
+                    {uploading === field.name ? 'Uploading…' : values[field.name] ? 'Replace image' : 'Upload image'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={(event) => handleImage(field.name, event.target.files?.[0], event.target)}
+                    />
+                  </label>
+                  {values[field.name] ? (
+                    <button type="button" className="btn btn--quiet btn--sm" onClick={() => onChange(field.name, null)}>
+                      Remove
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+              {field.help ? <span className="field__hint">{field.help}</span> : null}
+              {imageError ? (
+                <span className="field__error" role="alert">
+                  <Icon name="alert" size={14} />
+                  {imageError}
+                </span>
+              ) : null}
+            </div>
           )
         }
         return (

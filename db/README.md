@@ -90,7 +90,9 @@ own or the last admin account.
 | `GET/POST/PATCH/DELETE /api/records/:type` | **required** | Console records (`?id=` for update/delete) |
 | `GET/PUT /api/settings` | **required** | Organisation details |
 | `GET/POST/PATCH/DELETE /api/admins` | **required** | Console accounts (`?id=` for update/delete) |
+| `POST/DELETE /api/images` | **required** | Upload (base64) or delete an image (`?id=` for delete) |
 | `GET /api/public/:type` | – | `stories`, `news`, `events`, `settings` for the public site |
+| `GET /api/public/images/:id` | – | Stored image bytes (cached for a year) |
 | `GET /api/health` | – | Connectivity check |
 
 ## Notes

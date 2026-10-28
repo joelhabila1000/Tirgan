@@ -5,6 +5,7 @@ import StoryArt from '../components/Rbc'
 import { Breadcrumbs, Callout, CtaBanner, MediaCard, PlaceholderTag } from '../components/Ui'
 import { news as staticNews, site } from '../data/site'
 import { useCollection } from '../lib/content'
+import { imageUrl } from '../lib/api'
 
 /**
  * Article — a single news post or blog article.
@@ -95,9 +96,13 @@ export default function Article() {
             </div>
           </header>
 
-          <div className="article-hero-art" aria-hidden="true">
-            <StoryArt name={article.art} />
-          </div>
+          {article.imageId ? (
+            <img className="article-hero-img" src={imageUrl(article.imageId)} alt="" />
+          ) : (
+            <div className="article-hero-art" aria-hidden="true">
+              <StoryArt name={article.art} />
+            </div>
+          )}
 
           <div className="article-body article-body--aside" style={{ marginTop: 'var(--sp-7)' }}>
             <div>
