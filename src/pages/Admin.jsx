@@ -403,7 +403,7 @@ export default function Admin() {
         setStatus('signed-out')
         if (error.status !== 401) {
           setNotice(
-            'In development, run `npx vercel dev` so the app is served together with its API — a plain `npm run dev` has no /api.',
+            'Could not reach the admin API. Check that the server is running and that DATABASE_URL is set in .env.local (or in your Vercel project).',
           )
         }
       })

@@ -38,13 +38,17 @@ contents into the Neon SQL editor instead of using the npm scripts.
 
 ## 3. Run the app with its API
 
-Plain `npm run dev` (Vite) has no `/api` and falls back to the bundled sample
-records. To exercise the real database locally, serve the app together with the
-serverless functions:
+`npm run dev` serves the front end **and** runs the `/api` handlers in-process
+(see `scripts/vite-api-dev.mjs`), reading `DATABASE_URL` from `.env.local`. No
+Vercel CLI and no project linking are needed:
 
 ```bash
-npx vercel dev        # or: npm run dev:api, after installing the Vercel CLI
+npm run dev           # http://localhost:5173 — app + API
 ```
+
+`npm run dev:api` runs `vercel dev` instead; it only adds value if you want the
+linked Vercel project's environment, and note that `vercel dev` does **not**
+read `.env.local`.
 
 The admin console shows a "Live data" badge when it is reading from Neon, and a
 "Sample data" badge when it is not.
