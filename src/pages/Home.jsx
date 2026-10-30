@@ -34,7 +34,7 @@ export default function Home() {
     <>
       <Seo
         title="Sickle cell awareness, screening and medical outreach"
-        description={`${site.name} works on sickle cell awareness, screening and medical outreach in ${site.city}, ${site.country}. Free genotype screening, treatment support and counselling.`}
+        description={`${site.name} promotes sickle cell awareness, genotype education and community outreach in ${site.city}, ${site.country}.`}
         path="/"
       />
 
@@ -57,9 +57,8 @@ export default function Home() {
             </h1>
 
             <p className="hero__lede">
-              Tirngan Sickle Cell Foundation is focused on sickle cell awareness, screening and
-              medical outreach — so that more families in Kaduna know their genotype, understand
-              the condition and get support early.
+              Tirngan Sickle Cell Foundation promotes awareness, screening and medical outreach,
+              while supporting people affected by sickle cell and encouraging genotype awareness.
             </p>
 
             <div className="hero__cta">
@@ -76,15 +75,15 @@ export default function Home() {
             <div className="hero__trust">
               <span className="hero__trust-item">
                 <Icon name="check" size={16} />
-                Free genotype screening
+                Genotype awareness
               </span>
               <span className="hero__trust-item">
                 <Icon name="check" size={16} />
-                Counselling for every result
+                Education &amp; informed decisions
               </span>
               <span className="hero__trust-item">
                 <Icon name="check" size={16} />
-                Kaduna &amp; beyond
+                Support &amp; empowerment
               </span>
             </div>
           </div>

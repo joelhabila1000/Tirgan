@@ -4,10 +4,8 @@
    REBRAND HERE. Every colour, font, radius, shadow and motion value used
    across the site is declared in this one file.
 
-   The palette and typography below carry over the visual language established
-   in the original single-page design (src/App.css): a warm cream canvas,
-   berry as the primary accent, deep plum for dark bands, coral highlights,
-   hairline rules and editorial serif headings.
+   The palette and typography below follow the approved brand identity:
+   red, maroon, navy, black and white, with Cinzel and Poppins typography.
    ========================================================================== */
 
 :root {
@@ -16,28 +14,28 @@
      Contrast ratios are measured against the cream canvas (--cream-100).
      ------------------------------------------------------------------ */
 
-  /* Deep plum — primary dark band, footer, high-contrast surfaces. */
-  --plum-900: #2f1f29;
-  --plum-800: #46303c; /* default dark section background */
-  --plum-700: #5b3e4c;
+  /* Brand darks: black, dark blue and maroon. */
+  --plum-900: #000000;
+  --plum-800: #000b3d;
+  --plum-700: #800000;
 
-  /* Berry — the primary brand accent, tuned to the logo's bright red. */
-  --berry-600: #f41212;
-  --berry-700: #c00f0f; /* hover / pressed */
-  --berry-800: #970b0b;
+  /* Brand red and its darker interaction states. */
+  --berry-600: #b20b0b;
+  --berry-700: #800000;
+  --berry-800: #000b3d;
   --berry-050: #fde9e9; /* tinted surfaces */
 
-  /* Warm coral — energetic highlight. Decorative and large text only. */
-  --coral-500: #e8705a;
-  --coral-600: #d1543d;
-  --coral-ink: #b4442e; /* coral dark enough to be text-safe. 5.3:1 */
-  --coral-050: #fbeae4;
+  /* Supporting highlights stay within the brand red palette. */
+  --coral-500: #b20b0b;
+  --coral-600: #800000;
+  --coral-ink: #800000;
+  --coral-050: #fde9e9;
 
-  /* Soft cream — the page canvas. */
-  --cream-050: #fffdfa;
-  --cream-100: #fffaf4; /* default page background */
-  --cream-200: #f8f2ed; /* alternating section background */
-  --cream-300: #e8dcd5; /* hairline rules, muted fills */
+  /* White canvas with a subtle red tint for alternating surfaces. */
+  --cream-050: #ffffff;
+  --cream-100: #ffffff;
+  --cream-200: #fff5f5;
+  --cream-300: #eedcdc;
 
   /* Ink — text. 15:1 on cream. */
   --ink-900: #2a2027;
@@ -45,19 +43,18 @@
   --ink-600: #6e636a; /* muted body copy. 5.5:1 on cream — AA compliant */
 
   /* Supporting accents, used mainly in graphics, charts and data. */
-  --teal-600: #2f7d74; /* 4.7:1 on cream — AA compliant */
-  --teal-700: #24615a;
-  --teal-050: #e4f1ef;
+  --teal-600: #000b3d;
+  --teal-700: #000000;
+  --teal-050: #edf0f8;
 
-  --gold-500: #c08a2e; /* decorative ochre */
-  --gold-600: #a87524;
-  --gold-ink: #8a5e12; /* text-safe. 5.6:1 on cream */
-  --gold-050: #f9efdd;
+  --gold-500: #b20b0b;
+  --gold-600: #800000;
+  --gold-ink: #800000;
+  --gold-050: #fde9e9;
 
   --white: #ffffff;
 
-  /* The supplied logo artwork (src/assets/logo.jpg) has a baked-in black
-     plate. --logo-plate matches it exactly so badges read as intentional. */
+  /* The supplied logo artwork has a baked-in black plate. */
   --logo-plate: #000000;
 
   /* Status colours */
@@ -91,9 +88,8 @@
      wordmark) paired with a clean humanist sans for body copy.
      Loaded in index.html; falls back to system fonts if you go offline.
      ------------------------------------------------------------------ */
-  --font-head: "Fraunces", "Playfair Display", Georgia, "Times New Roman",
-    serif;
-  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial,
+  --font-head: "Cinzel", Georgia, "Times New Roman", serif;
+  --font-body: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, Arial,
     sans-serif;
 
   --fs-xs: 0.8125rem; /* 13px — captions, meta */
@@ -150,7 +146,7 @@
   --shadow-sm: 0 1px 2px rgba(42, 32, 39, 0.04);
   --shadow-md: 0 6px 18px rgba(42, 32, 39, 0.07);
   --shadow-lg: 0 14px 40px rgba(42, 32, 39, 0.1);
-  --shadow-berry: 0 10px 26px rgba(162, 60, 91, 0.22);
+  --shadow-berry: 0 10px 26px rgba(178, 11, 11, 0.22);
 
   --dur-fast: 160ms;
   --dur: 260ms;
@@ -166,9 +162,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   Back-compat aliases.
-   The component layer was written against the earlier token names. These map
-   them onto the brand palette above so nothing has to be rewritten by hand.
+   Back-compat aliases for component styles.
    -------------------------------------------------------------------------- */
 :root {
   --red-600: var(--berry-600);
@@ -176,16 +170,7 @@
   --red-800: var(--plum-800);
   --red-050: var(--berry-050);
 
-  --coral-600: var(--coral-600);
-
   --charcoal: var(--ink-900);
-  --ink-700: var(--ink-700);
-  --ink-600: var(--ink-600);
-
-  --cream-050: var(--cream-050);
-  --cream-100: var(--cream-100);
-  --cream-200: var(--cream-200);
-  --cream-300: var(--cream-300);
 
   --warning-050: var(--gold-050);
   --warning-700: var(--gold-ink);

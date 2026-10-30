@@ -21,12 +21,12 @@ export const site = {
   name: 'Tirngan Sickle Cell Foundation',
   shortName: 'Tirngan',
   initials: 'TF',
-  tagline: 'Breaking Cycles', // REPLACE if the strapline changes
+  tagline: 'Breaking Cycles',
   url: 'https://www.tirngan.org', // REPLACE with your live domain (used for SEO + share links)
   mission:
-    'To support, educate and advocate for people living with sickle cell disease, and to work toward a future free of its burden.',
+    'To educate, support and empower people affected by sickle cell disease, while promoting genotype awareness and informed relationship decisions.',
   vision:
-    'A Nigeria where every child is born free of sickle cell disease, and where everyone already living with it is supported to live well and with dignity.',
+    'A future where every young person understands their genotype, every person living with sickle cell is supported, and fewer families face preventable complications.',
   city: 'Kaduna',
   state: 'Kaduna State',
   country: 'Nigeria',
@@ -78,33 +78,33 @@ export const site = {
 export const values = [
   {
     icon: 'heart',
-    title: 'Dignity first',
-    text: 'We speak about people living with sickle cell disease, never about victims. Person-first language is a promise, not a preference.',
+    title: 'Empathy',
+    text: 'We recognise the lived experiences of people affected by sickle cell and their families.',
   },
   {
     icon: 'book',
-    title: 'Accuracy',
-    text: 'Every medical statement we publish is reviewed by clinicians. If we are unsure, we link to a source or say we do not know.',
+    title: 'Impact',
+    text: 'We focus our efforts on meaningful change for people and communities affected by sickle cell.',
   },
   {
-    icon: 'users',
-    title: 'Community-led',
-    text: 'People living with sickle cell disease and their caregivers sit on our committees and shape every programme we run.',
+    icon: 'book',
+    title: 'Education',
+    text: 'We believe accurate knowledge is an important step toward informed decisions and prevention.',
   },
   {
     icon: 'shield',
-    title: 'Transparency',
-    text: 'Our accounts, screening numbers and fund allocation are published in full every year.',
-  },
-  {
-    icon: 'handshake',
-    title: 'Partnership',
-    text: 'We work with hospitals, schools, faith groups and government so that support reaches the people who need it.',
+    title: 'Integrity',
+    text: 'We aim to act with honesty, transparency and compassion in our work.',
   },
   {
     icon: 'megaphone',
-    title: 'Advocacy',
-    text: "We push for newborn screening, affordable hydroxyurea and pain relief to be available in every state — not just the wealthy ones.",
+    title: 'Awareness',
+    text: 'We encourage open conversations about sickle cell disease and genotype compatibility.',
+  },
+  {
+    icon: 'heart',
+    title: 'Support',
+    text: 'We stand with individuals and families affected by sickle cell disease.',
   },
 ]
 
