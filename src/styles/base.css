@@ -388,7 +388,8 @@ small {
 
 .btn--gold {
   --btn-bg: var(--gold-500);
-  --btn-fg: var(--charcoal);
+  --btn-fg: var(--white);
+  color: var(--white);
 }
 
 .btn--gold:hover {

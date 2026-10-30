@@ -42,10 +42,10 @@
   --ink-700: #463a41;
   --ink-600: #6e636a; /* muted body copy. 5.5:1 on cream — AA compliant */
 
-  /* Supporting accents, used mainly in graphics, charts and data. */
-  --teal-600: #000b3d;
-  --teal-700: #000000;
-  --teal-050: #edf0f8;
+  /* Supporting teal is retained for healthy-cell illustrations and status UI. */
+  --teal-600: #2f7d74;
+  --teal-700: #24615a;
+  --teal-050: #e4f1ef;
 
   --gold-500: #b20b0b;
   --gold-600: #800000;
